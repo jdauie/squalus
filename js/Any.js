@@ -1,68 +1,65 @@
-define(['squalus/Scalar', 'squalus/Nullable'], function(Scalar, Nullable) {
+"use strict";
 
-    var Any = function(types) {
-        this._id = createUuidV4();
-        this._types = types;
-    };
+define(['squalus/Type', 'squalus/Scalar', 'squalus/Nullable'], function(Scalar, Nullable) {
 
-    Any.prototype = {
+    class Any extends Type {
 
-        constructor: Any,
+        constructor(types) {
+            super.constructor();
+            this._types = types;
+        }
 
-        name: function() {
+        name() {
             return this._types.map(function(type) {
                 return type.name();
             }).join('|');
-        },
+        }
 
-        replace: function() {
+        replace() {
             if (this._types.length === 2 && (this._types[0] instanceof Scalar) && this._types[1].name() === 'null') {
                 return new Nullable(this._types[0]);
             }
             return this;
-        },
+        }
 
-        html: function() {
+        html() {
             return `
             <div id="${this._id}">
                 <select class="test-option">
-                    ${this._types.map(function(type) {
+                    ${this._types.map(function (type) {
                         return `<option>${getLastToken(type.name())}</option>`;
                     }).join()}
                 </select>
-                ${this._types.map(function(type, i) {
-                    return `<div class="test-option" ${i > 0 ? 'style="display:none"' : ''}>${type.html()}</div>`;
+                ${this._types.map(function (type, i) {
+                    return `<div class="test-option">${type.html()}</div>`;
                 })}
             </div>
             `;
-        },
+        }
 
-        value: function() {
-            return this._types[document.getElementById(this._id).firstElementChild.selectedIndex].value();
-        },
+        value() {
+            return this._types[this.node().firstElementChild.selectedIndex].value();
+        }
 
-        populate: function(data, path, types) {
+         populate(data, path, types) {
             var current = types[path];
 
             var type = this._types.find(function(type) {
                 return type.name() === current || current.endsWith('_'+getLastToken(type.name()));
             });
 
-            var select = document.getElementById(this._id).firstElementChild;
+            var select = this.node().firstElementChild;
             select.value = type.name();
 
-            // todo figure out a better way
-            //select.dispatchEvent(new Event('change'));
-
             type.populate(data);
-        },
+        }
 
-        clear: function() {
+        clear() {
             this._types.forEach(function(type) {
                 type.clear();
             });
         }
-    };
+    }
 
     Any.onChange = function(event) {
         var node = this;
@@ -135,13 +132,6 @@ define(['squalus/Scalar', 'squalus/Nullable'], function(Scalar, Nullable) {
             }
         }
         return str;
-    };
-
-    var createUuidV4 = function() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-            return v.toString(16);
-        });
     };
 
     return Any;
