@@ -1,7 +1,8 @@
+"use strict";
 
 require.config({
     paths: {
-        jquery: 'libs/jquery/jquery',
+        //"object-clone": "/lib/js-object-clone/object-clone",
     }
 });
 

@@ -1,29 +1,29 @@
 "use strict";
 
-define(['squalus/Tag'], function($) {
+define(['squalus/Tag'], function ($) {
 
-	class Attribute {
+    class Attribute {
 
-		constructor(name, type, required) {
+        constructor(name, type, required) {
             this._name = name;
             this._type = type;
             this._required = required;
             this._included = false;
         }
 
-		name() {
+        name() {
             return this._name;
-		}
-        
+        }
+
         required() {
             return this._required;
         }
-        
+
         included() {
             return this._included;
         }
 
-		build() {
+        build() {
             this._node = $('tr', {'data-type': this},
                 $('th'),
                 $('th', this._name),
@@ -36,23 +36,23 @@ define(['squalus/Tag'], function($) {
             }
             this.update();
             return this._node;
-		}
+        }
 
-		value() {
+        value() {
             return this._type.value();
-		}
+        }
 
-		populate(data, path, types) {
-            this._type.populate(data, path+'.'+this._name, types);
+        populate(data, path, types) {
+            this._type.populate(data, `${path}.${this._name}`, types);
             this._included = true;
             this.update();
-		}
+        }
 
-		clear() {
+        clear() {
             this._type.clear();
             this._included = false;
             this.update();
-		}
+        }
 
         toggle() {
             this._included = !this._included;
@@ -66,12 +66,12 @@ define(['squalus/Tag'], function($) {
                 this._node.children[2].firstElementChild.classList.toggle('test-hidden', !this._included);
             }
         }
-	}
+    }
 
-	Attribute.onClickToggle = function(event) {
-		this.parentNode.parentNode.dataset.type.toggle();
-	};
-	
-	return Attribute;
+    Attribute.onClickToggle = function (event) {
+        this.parentNode.parentNode.dataset.type.toggle();
+    };
+
+    return Attribute;
 
 });

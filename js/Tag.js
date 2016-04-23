@@ -1,6 +1,6 @@
 "use strict";
 
-define([], function() {
+define([], function () {
 
     function appendNode(element, content) {
         if (content && content.nodeType) {

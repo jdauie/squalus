@@ -16,7 +16,7 @@
   "author": "jdauie",
   "license": "ISC",
   "dependencies": {
-    "jquery": "^2.2.3",
+    "js-object-clone": "^0.4.2",
     "requirejs": "^2.2.0"
   }
 }

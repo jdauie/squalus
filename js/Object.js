@@ -1,54 +1,54 @@
 "use strict";
 
-define(['squalus/Tag'], function($) {
+define(['squalus/Tag'], function ($) {
 
-	class Obj {
+    class Obj {
 
-		constructor(name, attributes) {
-			this._name = name;
-			this._attributes = attributes;
-			this._node = null;
-		}
+        constructor(name, attributes) {
+            this._name = name;
+            this._attributes = attributes;
+            this._node = null;
+        }
 
-		name() {
-			return this._name;
-		}
+        name() {
+            return this._name;
+        }
 
-		build() {
-			return this._node = $('table', {'data-type': this},
-				$('tbody',
-					this._attributes.map(function(type) {
-						return type.build();
-					})
-				)
-			);
-		}
+        build() {
+            return this._node = $('table', {'data-type': this},
+                $('tbody',
+                    this._attributes.map(function (type) {
+                        return type.build();
+                    })
+                )
+            );
+        }
 
-		value() {
-			var data = {};
-			this._attributes.forEach(function(attr) {
-				if (attr.required() || attr.included()) {
-					data[attr.name()] = attr.value();
-				}
-			});
-			return data;
-		}
+        value() {
+            var data = {};
+            this._attributes.forEach(function (attr) {
+                if (attr.required() || attr.included()) {
+                    data[attr.name()] = attr.value();
+                }
+            });
+            return data;
+        }
 
-		populate(data, path, types) {
-			this._attributes.forEach(function(attr) {
-				if(data.hasOwnProperty(attr.name())) {
-					attr.populate(data[attr.name()], path, types);
-				}
-			});
-		}
+        populate(data, path, types) {
+            this._attributes.forEach(function (attr) {
+                if (data.hasOwnProperty(attr.name())) {
+                    attr.populate(data[attr.name()], path, types);
+                }
+            });
+        }
 
-		clear() {
-			this._attributes.forEach(function(i, attr) {
-				attr.clear();
-			});
-		}
-	}
+        clear() {
+            this._attributes.forEach(function (i, attr) {
+                attr.clear();
+            });
+        }
+    }
 
-	return Obj;
+    return Obj;
 
 });

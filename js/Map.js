@@ -1,6 +1,6 @@
 "use strict";
 
-define(['squalus/Tag', 'object-clone'], function($) {
+define(['squalus/Tag', 'object-clone'], function ($) {
 
     class Map {
 
@@ -14,7 +14,7 @@ define(['squalus/Tag', 'object-clone'], function($) {
         }
 
         name() {
-            return this._type.name()+'{}';
+            return this._type.name() + '{}';
         }
 
         build() {
@@ -29,7 +29,7 @@ define(['squalus/Tag', 'object-clone'], function($) {
                 )
             );
             if (this._required) {
-                this._required._attributes.forEach(function(attr){
+                this._required._attributes.forEach(function (attr) {
                     this.add(attr._type, attr.name());
                 }.bind(this));
             }
@@ -37,7 +37,7 @@ define(['squalus/Tag', 'object-clone'], function($) {
         }
 
         populate(data, path, types) {
-            Object.keys(data).forEach(function(key, i){
+            Object.keys(data).forEach(function (key, i) {
                 var row = this.add();
                 this._body.children[i].firstElementChild.textContent = key;
                 row.populate(data[key], `${path}[${key}]`, types);
@@ -46,7 +46,7 @@ define(['squalus/Tag', 'object-clone'], function($) {
 
         value() {
             var obj = {};
-            this._rows.forEach(function(row, i){
+            this._rows.forEach(function (row, i) {
                 var key = this._body.children[i].children[1].children.firstElementChild.textContent;
                 obj[key] = row.value();
             }.bind(this));
@@ -67,9 +67,9 @@ define(['squalus/Tag', 'object-clone'], function($) {
             }
             this._body.appendChild($('tr',
                 $('th', $('input', {type: 'button', class: 'test-row-remove', value: '-'}),
-                $('th', keyField),
-                $('td', clone.build())
-            )));
+                    $('th', keyField),
+                    $('td', clone.build())
+                )));
             return clone;
         }
 
