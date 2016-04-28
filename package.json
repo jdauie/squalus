@@ -16,7 +16,9 @@
   "author": "jdauie",
   "license": "ISC",
   "dependencies": {
-    "js-object-clone": "^0.4.2",
-    "requirejs": "^2.2.0"
+    "js-object-clone": "^0.4.2"
+  },
+  "devDependencies": {
+    "traceur": "0.0.108"
   }
 }
