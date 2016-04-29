@@ -91,6 +91,15 @@ function convertValueToParam(val, key, query) {
   }
 }
 
+function htmlEscape(str) {
+  return str.replace(/&/g, '&amp;') // first!
+    .replace(/>/g, '&gt;')
+    .replace(/</g, '&lt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/`/g, '&#96;');
+}
+
 export default class Definition {
 
   constructor(guid, endpoint, type, params) {
@@ -255,7 +264,7 @@ export default class Definition {
     // check for xml, etc.
     if (this._type && (!(this._type instanceof Scalar) || !this._type.contentType())) {
 
-      var json = $('table',
+      const json = $('table',
         $('tbody',
           $('tr',
             $('th', 'JSON'),
@@ -267,7 +276,7 @@ export default class Definition {
       this.appendTableControls(json);
 
       // tabs
-      var container = $('div', { class: 'tab-container' },
+      const container = $('div', { class: 'tab-container' },
         $('ul',
           $('li', { class: 'current' }, 'Editor'),
           $('li', 'JSON')
@@ -278,9 +287,8 @@ export default class Definition {
       body.appendChild(container);
 
       // todo: trigger click event
-      container.children().filter('ul').find('li').click(Definition.onTabSwitch)
-    }
-    else {
+      container.children().filter('ul').find('li').click(Definition.onTabSwitch);
+    } else {
       body.append(table);
     }
 
@@ -299,16 +307,16 @@ export default class Definition {
   }
 
   switchTab(index) {
-    var divs = this._body.querySelectorAll('.tab-container > div');
-    var lis = this._body.querySelectorAll('.tab-container > div');
+    const divs = this._body.querySelectorAll('.tab-container > div');
+    const lis = this._body.querySelectorAll('.tab-container > div');
 
     for (let i = 0; i < divs.length; i++) {
-      divs[i].classList.toggle('current', i == index);
-      lis[i].classList.toggle('current', i == index);
+      divs[i].classList.toggle('current', i === index);
+      lis[i].classList.toggle('current', i === index);
     }
 
     if (this._json) {
-      var val = this._type.value();
+      const val = this._type.value();
       if (val !== null) {
         this._json.value = JSON.stringify(val, null, 2);
       }
@@ -316,13 +324,104 @@ export default class Definition {
   }
 
   submit() {
-    var Factory = require('squalus/Factory');
-    Factory.ajax({
-      type: this._endpoint.method,
-      url: this.getPopulatedUrl(),
-      data: this.value(),
-      outputId: this._guid
+    // todo: trap parse errors
+    const url = this.getPopulatedUrl();
+    const method = this._endpoint.method;
+    const value = JSON.stringify(this.value());
+
+    let output = document.getElementById(this._guid);
+    const testBody = output.querySelector('.endpoint-test-body');
+    if (testBody) {
+      output = testBody.querySelector('.output') || testBody.appendChild($('div', { class: 'output' }));
+    }
+
+    if (output.clientHeight > 0) {
+      output.style.height = `${output.clientHeight}px`;
+    }
+    output.removeClass();
+    output.addClass('output output-waiting');
+    output.text(`[${method}] ${url}`);
+
+    fetch(url, {
+      method,
+      body: value,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then((res) => {
+
+      const request = `[${method}] <a href="${url}">${url}</a>`;
+
+      if (res.ok) {
+        //
+      }
+
+      const contentType = res.headers['Content-Type'];
+      let content = '';
+
+      // todo: don't lose "false"
+      if (contentType === 'application/json') {
+        result.json = JSON.stringify(res.json(), null, '  ');
+      }
+      else if (['application/xml', 'text/xml', 'application/vnd.google-earth.kml+xml'].includes(contentType)) {
+        result.kml = Utilities.escapeHtml(new XMLSerializer().serializeToString(data));
+      }
+      else {
+        result.text = '[' + contentType + ']';
+      }
+
+      var asdf = htmlEscape();
+
+      output.html(Factory.render(result));
+      output.removeClass();
+      output.addClass('output output-response');
+      output.style.height = 'auto';
+    }).catch((error) => {
+      console.log('There has been a problem with your fetch operation: ' + error.message);
+
+      // var json = null;
+      // var text = jqXHR.responseText;
+      //
+      // // don't lose "false"
+      // var contentType = jqXHR.getResponseHeader('content-type');
+      // if (contentType === 'application/json') {
+      //   json = Utilities.escapeHtml(JSON.stringify(jqXHR.responseJSON, null, "\t"));
+      //   text = null;
+      // }
+      //
+      // var result = {
+      //   request: Utilities.replaceAll('[@type] <a target="_blank" href="@url">@url</a>', {
+      //     '@type': this.options.type,
+      //     '@url': encodeURI(this.options.url)
+      //   }),
+      //   status: '[' + jqXHR.status + '] ' + error,
+      //   text: text,
+      //   json: json
+      // };
+      //
+      // this.output.html(Factory.render(result));
+      // this.output.removeClass();
+      // this.output.addClass('output output-response-error');
+      // this.output.height('');
     });
+
+    // var names = [
+    //   'Request',
+    //   'Status',
+    //   'Response',
+    //   'Error',
+    // ];
+    //
+    // var lines = [];
+    // for (var key in names) {
+    //   if (names.hasOwnProperty(key) && result[key]) {
+    //     lines.push(Utilities.replaceAll('<div class="output-section-header">@name:</div><pre>@result</pre>', {
+    //       '@name': names[key],
+    //       '@result': result[key]
+    //     }));
+    //   }
+    // }
+    // return lines.join("\n");
   }
 
   edit() {
