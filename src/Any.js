@@ -60,7 +60,7 @@ export default class Any {
   static onChange() {
     let node = this;
     let i = 0;
-    while (node) {
+    while (node.nextElementSibling) {
       node = node.nextElementSibling;
       node.classList.toggle('test-hidden', i++ !== this.selectedIndex);
     }
