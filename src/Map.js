@@ -1,81 +1,79 @@
-"use strict";
-
-import {default as $} from './Tag';
-import 'object-clone';
+import { default as $ } from './Tag';
+import 'js-object-clone';
 
 export default class Map {
 
-    constructor(type, key, required) {
-        this._type = type;
-        this._key = key;
-        this._required = required;
-        this._rows = [];
-        this._node = null;
-        this._body = null;
-    }
+  constructor(type, key, required) {
+    this._type = type;
+    this._key = key;
+    this._required = required;
+    this._rows = [];
+    this._node = null;
+    this._body = null;
+  }
 
-    name() {
-        return this._type.name() + '{}';
-    }
+  name() {
+    return `${this._type.name()}{}`;
+  }
 
-    build() {
-        this._node = $('div', {'data-type': this},
-            $('table',
-                this._body = $('tbody', {class: 'test-map-rows'}),
-                $('tfoot',
-                    $('th', $('input', {type: 'button', class: 'test-row-add', value: '+'})),
-                    $('th'),
-                    $('td')
-                )
-            )
-        );
-        if (this._required) {
-            this._required._attributes.forEach(function (attr) {
-                this.add(attr._type, attr.name());
-            }.bind(this));
-        }
-        return this._node;
+  build() {
+    this._node = $('div', { 'data-type': this },
+      $('table',
+        this._body = $('tbody', { class: 'test-map-rows' }),
+        $('tfoot',
+          $('th', $('input', { type: 'button', class: 'test-row-add', value: '+' })),
+          $('th'),
+          $('td')
+        )
+      )
+    );
+    if (this._required) {
+      this._required.attributes().forEach((attr) => {
+        this.add(attr.type(), attr.name());
+      });
     }
+    return this._node;
+  }
 
-    populate(data, path, types) {
-        Object.keys(data).forEach(function (key, i) {
-            var row = this.add();
-            this._body.children[i].firstElementChild.textContent = key;
-            row.populate(data[key], `${path}[${key}]`, types);
-        }.bind(this));
-    }
+  populate(data, path, types) {
+    Object.keys(data).forEach((key, i) => {
+      const row = this.add();
+      this._body.children[i].firstElementChild.textContent = key;
+      row.populate(data[key], `${path}[${key}]`, types);
+    });
+  }
 
-    value() {
-        var obj = {};
-        this._rows.forEach(function (row, i) {
-            var key = this._body.children[i].children[1].children.firstElementChild.textContent;
-            obj[key] = row.value();
-        }.bind(this));
-        return obj;
-    }
+  value() {
+    const obj = {};
+    this._rows.forEach((row, i) => {
+      const key = this._body.children[i].children[1].children.firstElementChild.textContent;
+      obj[key] = row.value();
+    });
+    return obj;
+  }
 
-    clear() {
-        this._rows = [];
-        this._body.innerHTML = '';
-    }
+  clear() {
+    this._rows = [];
+    this._body.innerHTML = '';
+  }
 
-    add(type, key) {
-        var clone = type || Object.clone(this._type, true);
-        this._rows.push(clone);
-        var keyField = this._key ? this._key.build() : $('input', {type: 'text', placeholder: 'key'});
-        if (key) {
-            keyField.value = key;
-        }
-        this._body.appendChild($('tr',
-            $('th', $('input', {type: 'button', class: 'test-row-remove', value: '-'}),
-                $('th', keyField),
-                $('td', clone.build())
-            )));
-        return clone;
+  add(type, key) {
+    const clone = type || Object.clone(this._type, true);
+    this._rows.push(clone);
+    const keyField = this._key ? this._key.build() : $('input', { type: 'text', placeholder: 'key' });
+    if (key) {
+      keyField.value = key;
     }
+    this._body.appendChild($('tr',
+      $('th', $('input', { type: 'button', class: 'test-row-remove', value: '-' }),
+        $('th', keyField),
+        $('td', clone.build())
+      )));
+    return clone;
+  }
 
-    remove(i) {
-        this._rows.splice(i, 1);
-        this._body.children[i].remove()
-    }
+  remove(i) {
+    this._rows.splice(i, 1);
+    this._body.children[i].remove();
+  }
 }

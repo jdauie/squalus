@@ -1,47 +1,43 @@
-"use strict";
+
+function isObject(obj) {
+  return obj === Object(obj);
+}
+
+function appendNode(element, content) {
+  if (content && content.nodeType) {
+    element.appendChild(content);
+  } else {
+    const div = document.createElement('div');
+    div.innerHTML = content || '';
+
+    while (div.firstChild) {
+      element.appendChild(div.firstChild);
+    }
+  }
+}
 
 // (tagName, attributes?, children?, children?)
 export default function (tagName, ...args) {
-    var attributes = (args.length && isObject(args[0]) && !args[0].nodeType) ? args[0] : {};
-    var children = args.slice((args[0] === attributes) ? 1 : 0);
+  const attributes = (args.length && isObject(args[0]) && !args[0].nodeType) ? args[0] : {};
+  const children = args.slice((args[0] === attributes) ? 1 : 0);
 
-    var elem = document.createElement(tagName);
+  const elem = document.createElement(tagName);
 
-    for (var name in attributes) {
-        if (name.startsWith('data-')) {
-            elem.dataset[name.substr(5)] = attributes[name];
-        }
-        else {
-            elem.setAttribute(name, attributes[name]);
-        }
+  Object.keys(attributes).forEach((name) => {
+    if (name.startsWith('data-')) {
+      elem.dataset[name.substr(5)] = attributes[name];
+    } else {
+      elem.setAttribute(name, attributes[name]);
     }
+  });
 
-    children.forEach(function (child) {
-        if (Array.isArray(child)) {
-            children.forEach(function (child) {
-                appendNode(elem, child);
-            })
-        }
-        else {
-            appendNode(elem, child);
-        }
-    });
-};
-
-function appendNode(element, content) {
-    if (content && content.nodeType) {
-        element.appendChild(content);
+  children.forEach((child) => {
+    if (Array.isArray(child)) {
+      child.forEach((c) => {
+        appendNode(elem, c);
+      });
+    } else {
+      appendNode(elem, child);
     }
-    else {
-        var div = document.createElement('div');
-        div.innerHTML = content || '';
-
-        while (div.firstChild) {
-            element.appendChild(div.firstChild);
-        }
-    }
-}
-
-function isObject(obj) {
-    return obj === Object(obj);
+  });
 }

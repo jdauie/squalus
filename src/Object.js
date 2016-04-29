@@ -1,50 +1,51 @@
-"use strict";
-
-import {default as $} from './Tag';
+import { default as $ } from './Tag';
 
 export default class Obj {
 
-    constructor(name, attributes) {
-        this._name = name;
-        this._attributes = attributes;
-        this._node = null;
-    }
+  constructor(name, attributes) {
+    this._name = name;
+    this._attributes = attributes;
+    this._node = null;
+  }
 
-    name() {
-        return this._name;
-    }
+  name() {
+    return this._name;
+  }
 
-    build() {
-        return this._node = $('table', {'data-type': this},
-            $('tbody',
-                this._attributes.map(function (type) {
-                    return type.build();
-                })
-            )
-        );
-    }
+  attributes() {
+    return this._attributes;
+  }
 
-    value() {
-        var data = {};
-        this._attributes.forEach(function (attr) {
-            if (attr.required() || attr.included()) {
-                data[attr.name()] = attr.value();
-            }
-        });
-        return data;
-    }
+  build() {
+    this._node = $('table', { 'data-type': this },
+      $('tbody',
+        this._attributes.map((type) => type.build())
+      )
+    );
+    return this._node;
+  }
 
-    populate(data, path, types) {
-        this._attributes.forEach(function (attr) {
-            if (data.hasOwnProperty(attr.name())) {
-                attr.populate(data[attr.name()], path, types);
-            }
-        });
-    }
+  value() {
+    const data = {};
+    this._attributes.forEach((attr) => {
+      if (attr.required() || attr.included()) {
+        data[attr.name()] = attr.value();
+      }
+    });
+    return data;
+  }
 
-    clear() {
-        this._attributes.forEach(function (i, attr) {
-            attr.clear();
-        });
-    }
+  populate(data, path, types) {
+    this._attributes.forEach((attr) => {
+      if (data.hasOwnProperty(attr.name())) {
+        attr.populate(data[attr.name()], path, types);
+      }
+    });
+  }
+
+  clear() {
+    this._attributes.forEach((i, attr) => {
+      attr.clear();
+    });
+  }
 }

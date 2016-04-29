@@ -1,2 +1,6 @@
+/dist
+/npm-debug.log
+/target
+/.eslintcache
 /node_modules
 /.idea
