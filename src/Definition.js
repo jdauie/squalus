@@ -53,23 +53,22 @@ function onTabSwitch() {
 }
 
 function createType(def) {
-  var func = require('squalus/' + def.class);
-  var params = /\(([^\)]*)\)/.exec(func.prototype.constructor.toString());
-  var args = [];
+  const func = require('squalus/' + def.class);
+  let params = /\(([^\)]*)\)/.exec(func.prototype.constructor.toString());
+  let args = [];
   if (params) {
     params = params[1].split(',').map(Function.prototype.call, String.prototype.trim);
-    for (var i = 0; i < params.length; i++) {
-      var value = def[params[i]];
+    args = params.map((param) => {
+      let value = def[param];
       if (Array.isArray(value) && value[0].class) {
         value = value.map(createType);
-      }
-      else if (value && value.class) {
+      } else if (value && value.class) {
         value = createType(value);
       }
-      args.push(value);
-    }
+      return value;
+    });
   }
-  var obj = func.construct(args);
+  let obj = func.construct(args);
   if (obj.replace) {
     obj = obj.replace();
   }
@@ -78,17 +77,16 @@ function createType(def) {
 
 function convertValueToParam(val, key, query) {
   if (Array.isArray(val)) {
-    val.map(function (item, i) {
-      convertValueToParam(item, `${key}[${i}]`, query);
-    });
+    val.forEach((item, i) =>
+      convertValueToParam(item, `${key}[${i}]`, query)
+    );
   } else if (typeof val === 'object') {
-    for (var name in val) {
-      convertValueToParam(val[name], `${key}[${name}]`, query);
-    }
+    Object.keys(val).forEach((name) =>
+      convertValueToParam(val[name], `${key}[${name}]`, query)
+    );
+  } else if (typeof val === 'boolean') {
+    query[key] = encodeURI(val ? 1 : 0);
   } else {
-    if (typeof val === 'boolean') {
-      val = (val ? 1 : 0);
-    }
     query[key] = encodeURI(val);
   }
 }
@@ -109,10 +107,10 @@ export default class Definition {
   }
 
   syncTabParams() {
-    var container = this._body.querySelector('.tab-container');
+    const container = this._body.querySelector('.tab-container');
     if (container) {
-      var src = container.children().filter('.current').find('.test-param');
-      var dst = container.children().not('.current').find('.test-param');
+      const src = container.children().filter('.current').find('.test-param');
+      const dst = container.children().not('.current').find('.test-param');
       src.each(function (i, node) {
         dst.eq(i).val($(node).val());
       });
