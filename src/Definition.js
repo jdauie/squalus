@@ -48,12 +48,11 @@ function onEdit() {
 }
 
 function onTabSwitch() {
-  const index = $(this).parent().children().filter('li').index($(this));
-  closestDefinition(this).switchTab(index);
+  closestDefinition(this).switchTab(this.previousSibling ? 1 : 0);
 }
 
 function createType(def) {
-  const func = require('squalus/' + def.class);
+  const func = this[def.class];
   let params = /\(([^\)]*)\)/.exec(func.prototype.constructor.toString());
   let args = [];
   if (params) {
@@ -85,14 +84,14 @@ function convertValueToParam(val, key, query) {
       convertValueToParam(val[name], `${key}[${name}]`, query)
     );
   } else if (typeof val === 'boolean') {
-    query[key] = encodeURI(val ? 1 : 0);
+    query.set(key, encodeURI(val ? 1 : 0));
   } else {
-    query[key] = encodeURI(val);
+    query.set(key, encodeURI(val));
   }
 }
 
 function htmlEscape(str) {
-  return str.replace(/&/g, '&amp;') // first!
+  return str.replace(/&/g, '&amp;')
     .replace(/>/g, '&gt;')
     .replace(/</g, '&lt;')
     .replace(/"/g, '&quot;')
@@ -116,12 +115,15 @@ export default class Definition {
   }
 
   syncTabParams() {
-    const container = this._body.querySelector('.tab-container');
-    if (container) {
-      const src = container.children().filter('.current').find('.test-param');
-      const dst = container.children().not('.current').find('.test-param');
-      src.each(function (i, node) {
-        dst.eq(i).val($(node).val());
+    const divs = this._body.querySelector('.tab-container > div');
+    if (divs.length) {
+      let src = divs[0].querySelectorAll('.test-param');
+      let dst = divs[1].querySelectorAll('.test-param');
+      if (!divs[0].classList.contains('current')) {
+        [src, dst] = [dst, src];
+      }
+      [...src].forEach((param, i) => {
+        dst[i].value = param.value;
       });
     }
   }
@@ -141,7 +143,7 @@ export default class Definition {
 
     // use the json tab (instead of the form) if it is selected
     if (this._json && closestAncestorByTagName(this._json).classList.contains('current')) {
-      var val = this._json.value;
+      let val = this._json.value;
       if (val === '') {
         val = null;
       }
@@ -161,59 +163,56 @@ export default class Definition {
   }
 
   lock() {
-    //this._body.find('*').prop('disabled', true);
+    // this._body.find('*').prop('disabled', true);
   }
 
   unlock() {
-    //this._body.find('*').prop('disabled', false);
+    // this._body.find('*').prop('disabled', false);
   }
 
   getPopulatedUrl() {
-    var url = this._endpoint.url;
-    var query = {};
-    var map = {};
+    const query = new Map();
+    let url = this._endpoint.url;
     if (this._endpoint.params) {
-      var params = Object.keys(this._endpoint.params);
-      var tab = this._body.querySelector('.tab-container .current') || this._body;
-      var testParams = tab.querySelectorAll('.test-param');
-      for (var i = 0; i < testParams.length; i++) {
-        var key = params[i];
-        var keyPlaceholder = '<' + key + '>';
-        var val = testParams[i].dataset.type.value();
+      const params = Object.keys(this._endpoint.params);
+      const tab = this._body.querySelector('.tab-container .current') || this._body;
+      const testParams = tab.querySelectorAll('.test-param');
+      for (let i = 0; i < testParams.length; i++) {
+        const key = params[i];
+        const keyPlaceholder = `<${key}>`;
+        const val = testParams[i].dataset.type.value();
         if (url.indexOf(keyPlaceholder) === -1) {
-          if (val !== '' && val != null) {
+          if (val !== null && val !== '') {
             convertValueToParam(val, key, query);
           }
-        }
-        else {
-          map[keyPlaceholder] = encodeURI(val);
+        } else {
+          url = url.replace(keyPlaceholder, encodeURI(val));
         }
       }
     }
-    url = Utilities.replaceAll(url, map);
-    query = $.param(query);
-    if (query) {
-      url += '?' + query;
-    }
+
+    url = new URL(url);
+    query.forEach((value, key) => url.searchParams.append(key, value))
 
     return url;
   }
 
   buildParamsNode() {
-    if (this._endpoint.params) {
-      return $('table',
-        $('tbody',
-          Object.keys(this._endpoint.params).map(function (param, i) {
-            // this has to happen for each tab
-            var type = createType(this._params[param].type);
-            return $('tr', { class: 'test-param', 'data-type': type },
-              $('th', param),
-              $('td', type.build())
-            )
-          }.bind(this))
-        )
-      );
+    if (!this._endpoint.params) {
+      return null;
     }
+    return $('table',
+      $('tbody',
+        Object.keys(this._endpoint.params).map((param) => {
+          // this has to happen for each tab
+          const type = createType(this._params[param].type);
+          return $('tr', { class: 'test-param', 'data-type': type },
+            $('th', param),
+            $('td', type.build())
+          );
+        })
+      )
+    );
   }
 
   appendTableControls(table) {
@@ -244,9 +243,9 @@ export default class Definition {
   }
 
   build() {
-    var body = this._body;
+    const body = this._body;
 
-    var table = this._type ? this._type.build() : $('table');
+    let table = this._type ? this._type.build() : $('table');
 
     if (this._type instanceof Scalar || this._type instanceof Any) {
       table = $('table',
@@ -263,7 +262,6 @@ export default class Definition {
 
     // check for xml, etc.
     if (this._type && (!(this._type instanceof Scalar) || !this._type.contentType())) {
-
       const json = $('table',
         $('tbody',
           $('tr',
@@ -287,7 +285,7 @@ export default class Definition {
       body.appendChild(container);
 
       // todo: trigger click event
-      container.children().filter('ul').find('li').click(Definition.onTabSwitch);
+      // container.children().filter('ul').find('li').click(onTabSwitch);
     } else {
       body.append(table);
     }
