@@ -1,4 +1,4 @@
-import { default as $ } from './Tag';
+import { default as $ } from './../Tag';
 import Scalar from './Scalar';
 import Nullable from './Nullable';
 

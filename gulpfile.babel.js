@@ -9,7 +9,7 @@ import WebpackDevServer from 'webpack-dev-server';
 gulp.task('default', ['webpack']);
 
 gulp.task('babel', () =>
-  gulp.src('src/*.js')
+  gulp.src('src/**/*.js')
     .pipe(babel())
     .pipe(gulp.dest('target'))
 );
@@ -31,7 +31,7 @@ gulp.task('webpack', ['test'], (callback) => {
   myConfig.devtool = 'source-map';
   myConfig.plugins = [
     new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
+    // new webpack.optimize.UglifyJsPlugin(),
   ];
 
   // run webpack

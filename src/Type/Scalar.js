@@ -1,4 +1,4 @@
-import { default as $ } from './Tag';
+import { default as $ } from './../Tag';
 
 export default class Scalar {
 

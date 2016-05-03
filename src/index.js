@@ -1,11 +1,25 @@
+import Squalus from './Squalus';
+import docReady from 'es6-docready';
 
-import './Any';
-import './Attribute';
-import './Map';
-import './Nullable';
-import './Object';
-import './Scalar';
-import './Tag';
-import Vector from './Vector';
-
-console.log(Vector);
+docReady(() => {
+  Squalus.build([
+    {
+      id: 'foo1',
+      endpoint: {
+        url: 'some/url',
+        method: 'GET',
+      },
+      type: {
+        class: 'Scalar',
+        type: {
+          name: 'int',
+        },
+      },
+      params: {
+        guid: {
+          name: 'int',
+        },
+      },
+    },
+  ]);
+});

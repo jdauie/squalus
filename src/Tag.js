@@ -40,4 +40,6 @@ export default function (tagName, ...args) {
       appendNode(elem, child);
     }
   });
+
+  return elem;
 }
