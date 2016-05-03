@@ -1,6 +1,6 @@
 
 function isObject(obj) {
-  return obj === Object(obj);
+  return obj === Object(obj) && !Array.isArray(obj);
 }
 
 function appendNode(element, content) {
@@ -23,9 +23,11 @@ export default function (tagName, ...args) {
 
   const elem = document.createElement(tagName);
 
-  Object.keys(attributes).forEach((name) => {
+  Object.keys(attributes).forEach(name => {
     if (name.startsWith('data-')) {
       elem.dataset[name.substr(5)] = attributes[name];
+    } else if (name.startsWith('_')) {
+      elem[name] = attributes[name];
     } else {
       elem.setAttribute(name, attributes[name]);
     }

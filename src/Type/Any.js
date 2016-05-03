@@ -1,6 +1,4 @@
 import { default as $ } from './../Tag';
-import Scalar from './Scalar';
-import Nullable from './Nullable';
 
 function getLastToken(str) {
   return str.substr(str.lastIndexOf('_') + 1);
@@ -13,23 +11,12 @@ export default class Any {
     this._node = null;
   }
 
-  name() {
-    return this._types.map((type) => type.name()).join('|');
-  }
-
-  replace() {
-    if (this._types.length === 2 && (this._types[0] instanceof Scalar) && this._types[1].name() === 'null') {
-      return new Nullable(this._types[0]);
-    }
-    return this;
-  }
-
   build() {
-    this._node = $('div', { 'data-type': this },
+    this._node = $('div', { _squalusType: this },
       $('select', { class: 'test-option' },
-        this._types.map((type) => $('option', getLastToken(type.name())))
+        Array.from(this._types.keys(), key => $('option', getLastToken(key)))
       ),
-      this._types.map((type) => $('div', { class: 'test-option' }, type.build()))
+      Array.from(this._types.values(), value => $('div', { class: 'test-option' }, value.build()))
     );
     return this._node;
   }
@@ -52,17 +39,15 @@ export default class Any {
   }
 
   clear() {
-    for (const type of this._types) {
-      type.clear();
-    }
+    this._types.forEach(type => type.clear());
   }
 
-  static onChange() {
-    let node = this;
+  static onChange(event) {
+    let node = event.target;
     let i = 0;
     while (node.nextElementSibling) {
       node = node.nextElementSibling;
-      node.classList.toggle('test-hidden', i++ !== this.selectedIndex);
+      node.classList.toggle('test-hidden', i++ !== event.target.selectedIndex);
     }
   }
 }

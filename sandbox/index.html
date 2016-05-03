@@ -1,35 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <script src="../dist/squalus.js"></script>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" href="main.css">
+  <script src="../dist/squalus.js"></script>
 </head>
 <body>
 <script>
   console.log('loading');
-
-  /*const def = new Definition('foo1', {
-    url: '',
-    method: 'GET',
-  }, {
-    class: 'Scalar',
-    type: {
-      name: 'int',
-    },
-  }, {
-    guid: {
-      name: 'int',
-    },
-  });
-
-  def.build();*/
 </script>
 
-<div id="test-event-root">
-  <div id="foo1">
-    <div class="endpoint-test-body"></div>
-  </div>
+<div id="api-root">
+  <ul class="api-tests">
+    <li>
+      <div class="endpoint-test" id="foo1">
+        <div class="endpoint-test-body"></div>
+      </div>
+    </li>
+  </ul>
 </div>
 
 </body>

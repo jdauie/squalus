@@ -5,19 +5,8 @@ import MapType from './Type/Map';
 import ObjectType from './Type/Object';
 import ScalarType from './Type/Scalar';
 import VectorType from './Type/Vector';
+import NullableType from './Type/Nullable';
 import Result from './Result';
-
-const availableTypes = new Map();
-[
-  AnyType,
-  AttributeType,
-  MapType,
-  ObjectType,
-  ScalarType,
-  VectorType,
-].forEach(item => {
-  availableTypes.set(item.prototype.constructor.name, item);
-});
 
 function closestAncestorByTagName(elem, tagName) {
   let e = elem.parentNode;
@@ -41,30 +30,6 @@ function closestAncestorByClassName(elem, className) {
   return null;
 }
 
-function createType(def) {
-  const func = availableTypes.get(def.class);
-  let params = /\(([^\)]*)\)/.exec(func.prototype.constructor.toString());
-  let args = [];
-  if (params) {
-    params = params[1].split(',').map(Function.prototype.call, String.prototype.trim);
-    args = params.map((param) => {
-      let value = def[param];
-      if (Array.isArray(value) && value[0].class) {
-        value = value.map(createType);
-      } else if (value && value.class) {
-        value = createType(value);
-      }
-      return value;
-    });
-  }
-  let obj = Object.create(func.prototype);
-  func.apply(obj, args);
-  if (obj.replace) {
-    obj = obj.replace();
-  }
-  return obj;
-}
-
 function convertValueToParam(val, key, query) {
   if (Array.isArray(val)) {
     val.forEach((item, i) =>
@@ -81,18 +46,161 @@ function convertValueToParam(val, key, query) {
   }
 }
 
+function convertToMap(obj) {
+  const map = new Map();
+  Object.keys(map).forEach(key => {
+    map.set(key, obj[key]);
+  });
+  return map;
+}
+
+function buildMap(keys, func) {
+  const map = new Map();
+  keys.forEach(key => {
+    map.set(key, func ? func(key) : key);
+  });
+  return map;
+}
+
+function transformMap(map, func) {
+  const newMap = new Map();
+  map.forEach((value, key) => {
+    newMap.set(key, func(value, key));
+  });
+  return newMap;
+}
+
+function createTypeFromDef(definition) {
+  if (!definition) {
+    return null;
+  }
+
+  const def = (typeof definition === 'string') ? {
+    type: definition,
+  } : definition;
+
+  let type = def.type;
+  let item = def.item;
+  let values = null;
+  let branches = null;
+
+  // any shortcut (string|int|float)
+  if (type.indexOf('|') !== -1) {
+    branches = type.split('|');
+    type = 'any';
+  }
+
+  // array shortcut
+  if (type.endsWith('[]')) {
+    if (item) {
+      throw new Error('duplicate item declaration');
+    }
+    item = type.substr(0, type.length - 2);
+    type = 'array';
+  }
+
+  // scalar values shortcut
+  if (type.endsWith('}')) {
+    values = type.substring(type.indexOf('{') + 1, type.length - 1).split(',');
+    type = type.substring(0, type.indexOf('{'));
+  }
+
+  // nullable shortcut (string? => string|null)
+  if (type.endsWith('?')) {
+    branches = [type.substr(0, type.length - 1), 'null'];
+    type = 'any';
+  }
+
+  const isScalar = [
+    'null',
+    'int',
+    'float',
+    'string',
+    'bool',
+  ].includes(type);
+
+  // scalar values
+  if (def.values) {
+    if (!isScalar) {
+      throw new Error('values can only be set for scalars');
+    }
+    if (values) {
+      throw new Error('duplicate values declaration');
+    }
+    if (!Array.isArray(def.values)) {
+      throw new Error('values must be an array');
+    }
+    values = def.values;
+  }
+
+  if (values && values.length === 0) {
+    throw new Error('empty values list');
+  }
+
+  // any branches
+  if (def.branches) {
+    if (type !== 'any') {
+      throw new Error('branches can only be set for any');
+    }
+    if (branches) {
+      throw new Error('duplicate branches declaration');
+    }
+    branches = def.branches;
+  }
+
+  if (branches && branches.length === 0) {
+    throw new Error('empty branches list');
+  }
+
+  // todo: ensure branches are unique (by type)
+
+  // build type
+  if (isScalar) {
+    return new ScalarType(type, values);
+  } else if (type === 'object') {
+    if (!def.attributes) {
+      throw new Error('object must have attributes (or be a map instead)');
+    }
+    return new ObjectType(Object.keys(def.attributes).map(a =>
+      new AttributeType(a, createTypeFromDef(def.attributes[a]), def.attributes[a].required))
+    );
+  } else if (type === 'map') {
+    return new MapType(createTypeFromDef(item), def.key, def.required);
+  } else if (type === 'array') {
+    return new VectorType(createTypeFromDef(item));
+  } else if (type === 'any') {
+    branches = Array.isArray(branches) ? buildMap(branches) : convertToMap(branches);
+    branches = transformMap(branches, value => createTypeFromDef(value));
+    // auto-null if possible (this could be confusing)
+    if (branches.size === 2) {
+      const types = Array.from(branches.values());
+      if ((types[0] instanceof ScalarType) && (types[1] instanceof ScalarType) &&
+        (types[0].name === 'null' || types[1].name === 'null')) {
+        return new NullableType(types[0].name === 'null' ? types[1] : types[0]);
+      }
+    }
+
+    return new AnyType(branches);
+  }
+
+  throw new Error('unknown type');
+}
+
 export default class Definition {
 
-  constructor(id, endpoint, type, params) {
-    this._endpoint = endpoint;
-    this._type = type ? createType(type) : null;
+  constructor(id, url, method, params, type, responseType) {
+    this._url = url;
+    this._method = method;
     this._params = params;
+    this._type = createTypeFromDef(type);
+    this._responseType = createTypeFromDef(responseType);
+
     this._test = document.getElementById(id);
     this._body = this._test.querySelector('.endpoint-test-body');
-    this._json = this._body.querySelector('.test-json');
+    this._json = null;
 
     this._body.innerHTML = '';
-    this._body.dataset.definition = this;
+    this._body._squalusDef = this;
   }
 
   syncTabParams() {
@@ -110,9 +218,9 @@ export default class Definition {
   }
 
   updateSingleParam(data) {
-    if (this._endpoint.params) {
+    if (this._params) {
       if (data.Id) {
-        this._body.querySelector('.test-param').dataset.type.populate(data.Id);
+        this._body.querySelector('.test-param')._squalusType.populate(data.Id);
       }
     }
   }
@@ -154,15 +262,15 @@ export default class Definition {
 
   getPopulatedUrl() {
     const query = new Map();
-    let url = this._endpoint.url;
-    if (this._endpoint.params) {
-      const params = Object.keys(this._endpoint.params);
+    let url = this._url;
+    if (this._params) {
+      const params = Object.keys(this._params);
       const tab = this._body.querySelector('.tab-container .current') || this._body;
       const testParams = tab.querySelectorAll('.test-param');
       for (let i = 0; i < testParams.length; i++) {
         const key = params[i];
-        const keyPlaceholder = `<${key}>`;
-        const val = testParams[i].dataset.type.value();
+        const keyPlaceholder = `{${key}}`;
+        const val = testParams[i]._squalusType.value();
         if (url.indexOf(keyPlaceholder) === -1) {
           if (val !== null && val !== '') {
             convertValueToParam(val, key, query);
@@ -173,22 +281,22 @@ export default class Definition {
       }
     }
 
-    url = new URL(url);
+    url = new URL(url, window.location.href);
     query.forEach((value, key) => url.searchParams.append(key, value));
 
     return url;
   }
 
   buildParamsNode() {
-    if (!this._endpoint.params) {
+    if (!this._params) {
       return null;
     }
     return $('table',
       $('tbody',
-        Object.keys(this._endpoint.params).map(param => {
+        Object.keys(this._params).map(param => {
           // this has to happen for each tab
-          const type = createType(this._params[param].type);
-          return $('tr', { class: 'test-param', 'data-type': type },
+          const type = createTypeFromDef(this._params[param]);
+          return $('tr', { class: 'test-param', _squalusType: type },
             $('th', param),
             $('td', type.build())
           );
@@ -198,12 +306,12 @@ export default class Definition {
   }
 
   appendTableControls(table) {
-    if (this._endpoint.params) {
+    if (this._params) {
       table.appendChild(
         $('thead',
           $('tr',
             $('th'),
-            $('th', (this._endpoint.method === 'PUT')
+            $('th', (this._method === 'PUT')
               ? $('input', { type: 'button', value: 'GET', class: 'test-edit' })
               : document.createTextNode('[params]')
             ),
@@ -217,7 +325,7 @@ export default class Definition {
       $('tfoot',
         $('tr',
           $('th'),
-          $('th', $('input', { type: 'button', value: this._endpoint.method, class: 'test-submit' })),
+          $('th', $('input', { type: 'button', value: this._method, class: 'test-submit' })),
           $('td', $('span', { class: 'test-edit-status' }))
         )
       )
@@ -270,6 +378,8 @@ export default class Definition {
     } else {
       body.append(table);
     }
+
+    this._json = this._body.querySelector('.test-json');
   }
 
   switchTab(index) {
@@ -292,16 +402,20 @@ export default class Definition {
   submit() {
     // todo: trap parse errors
     const url = this.getPopulatedUrl();
-    const method = this._endpoint.method;
+    const method = this._method;
     const value = JSON.stringify(this.value());
 
-    fetch(url, {
+    const options = {
       method,
-      body: value,
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(res => {
+    };
+    if (['PUT', 'POST', 'PATCH'].includes(method)) {
+      options.body = value;
+    }
+
+    fetch(url, options).then(res => {
       new Result(url, res).parse();
     }).catch(error => {
       new Result(url, error).parse();
@@ -312,7 +426,7 @@ export default class Definition {
     const url = this.getPopulatedUrl();
     const status = this._body.querySelector('.test-edit-status');
 
-    status.text('');
+    status.textContent = '';
 
     this.clear();
     this.lock();
@@ -329,8 +443,8 @@ export default class Definition {
 
       // if data is array, edit the first one (for convenience, to support shared id/search path)
       if (Array.isArray(data)) {
-        if (data.length && (this._endpoint.params && Object.keys(this._endpoint.params).length === 1)) {
-          status.text(`Loaded first record (${data.length} total)`);
+        if (data.length && (this._params && Object.keys(this._params).length === 1)) {
+          status.textContent = `Loaded first record (${data.length} total)`;
           data = data[0];
           this.updateSingleParam(data);
         } else {
@@ -340,12 +454,12 @@ export default class Definition {
       if (data) {
         this.populate(data);
       } else {
-        status.text('No match for pattern');
+        status.textContent = 'No match for pattern';
       }
 
       this.unlock();
     }).catch(error => {
-      status.text(error.message);
+      status.textContent = error.message;
       this.unlock();
     });
   }
@@ -370,6 +484,6 @@ export default class Definition {
   }
 
   static closest(elem) {
-    return closestAncestorByClassName(elem, 'endpoint-test-body').dataset.definition;
+    return closestAncestorByClassName(elem, 'endpoint-test-body')._squalusDef;
   }
 }

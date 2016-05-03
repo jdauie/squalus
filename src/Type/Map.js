@@ -17,7 +17,7 @@ export default class Map {
   }
 
   build() {
-    this._node = $('div', { 'data-type': this },
+    this._node = $('div', { _squalusType: this },
       $('table',
         this._body = $('tbody', { class: 'test-map-rows' }),
         $('tfoot',

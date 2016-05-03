@@ -2,14 +2,9 @@ import { default as $ } from './../Tag';
 
 export default class Obj {
 
-  constructor(name, attributes) {
-    this._name = name;
+  constructor(attributes) {
     this._attributes = attributes;
     this._node = null;
-  }
-
-  name() {
-    return this._name;
   }
 
   attributes() {
@@ -17,9 +12,9 @@ export default class Obj {
   }
 
   build() {
-    this._node = $('table', { 'data-type': this },
+    this._node = $('table', { _squalusType: this },
       $('tbody',
-        this._attributes.map((type) => type.build())
+        this._attributes.map(type => type.build())
       )
     );
     return this._node;
@@ -36,16 +31,12 @@ export default class Obj {
   }
 
   populate(data, path, types) {
-    this._attributes.forEach((attr) => {
-      if (data.hasOwnProperty(attr.name())) {
-        attr.populate(data[attr.name()], path, types);
-      }
+    this._attributes.forEach(attr => {
+      attr.populate(data[attr.name()], path, types);
     });
   }
 
   clear() {
-    this._attributes.forEach((i, attr) => {
-      attr.clear();
-    });
+    this._attributes.forEach(attr => attr.clear());
   }
 }

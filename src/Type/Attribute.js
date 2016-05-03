@@ -26,15 +26,15 @@ export default class Attribute {
   }
 
   build() {
-    this._node = $('tr', { 'data-type': this },
+    this._node = $('tr', { _squalusType: this },
       $('th'),
       $('th', this._name),
       $('td', this._type.build())
     );
     if (!this._required) {
-      this._node.firstElementChild.appendChild([
-        $('input', { type: 'button', class: 'test-attr-toggle', value: '\uD83D\uDCCE' }),
-      ]);
+      this._node.firstElementChild.appendChild(
+        $('input', { type: 'button', class: 'test-attr-toggle', value: '\uD83D\uDCCE' })
+      );
     }
     this.update();
     return this._node;
@@ -69,8 +69,8 @@ export default class Attribute {
     }
   }
 
-  static onClickToggle() {
-    this.parentNode.parentNode.dataset.type.toggle();
+  static onClickToggle(event) {
+    event.target.parentNode.parentNode._squalusType.toggle();
   }
 }
 

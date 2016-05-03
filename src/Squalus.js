@@ -7,7 +7,7 @@ export default class Squalus {
 
   static build(tests) {
     tests.forEach(test => {
-      const def = new Definition(test.id, test.endpoint, test.type, test.params);
+      const def = new Definition(test.id, test.url, test.method, test.params, test.data);
       def.build();
     });
 
@@ -28,7 +28,7 @@ export default class Squalus {
       },
     };
 
-    const root = document.getElementById('test-event-root');
+    const root = document.getElementById('api-root');
 
     Object.keys(events).forEach(type => {
       root.addEventListener(type, e => {

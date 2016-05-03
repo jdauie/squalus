@@ -1,0 +1,19 @@
+---
+id: foo1
+url: "some/url/<id>"
+method: PUT
+params:
+  id: int
+input:
+  type: object
+  attributes:
+    Attr1: int
+    Attr2:
+      type: array
+      item: string
+    Attr3:
+      type: object
+      attributes:
+        SubAttr1: bool
+        SubAttr2: int
+

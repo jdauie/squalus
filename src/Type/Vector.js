@@ -15,7 +15,7 @@ export default class Vector {
   }
 
   build() {
-    this._node = $('div', { 'data-type': this },
+    this._node = $('div', { _squalusType: this },
       $('table',
         this._body = $('tbody'),
         $('tfoot',
@@ -60,13 +60,13 @@ export default class Vector {
     this._body.children[i].remove();
   }
 
-  static onClickAdd() {
-    this.parentNode.parentNode.dataset.type.add();
+  static onClickAdd(event) {
+    event.target.parentNode.parentNode.parentNode.parentNode._squalusType.add();
   }
 
-  static onClickRemove() {
-    const row = this.parentNode.parentNode;
+  static onClickRemove(event) {
+    const row = event.target.parentNode.parentNode;
     const i = Array.prototype.indexOf.call(row.parentNode.children, row);
-    row.parentNode.parentNode.dataset.type.remove(i);
+    row.parentNode.parentNode.parentNode._squalusType.remove(i);
   }
 }

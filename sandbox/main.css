@@ -1,0 +1,102 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial;
+  //font-size: 10pt;
+}
+
+pre,
+textarea {
+  tab-size: 2;
+  -moz-tab-size: 2;
+}
+
+ul {
+  list-style-type: none;
+  margin:0;
+  padding:0;
+}
+
+#api {
+  margin:0 10px;
+}
+.api-tests {
+  margin-left:10px;
+  counter-reset:test-index;
+}
+.endpoint-test {
+  margin:0 0 4px 0;
+  counter-increment:test-index;
+}
+.endpoint-test-body {
+  margin:10px 0 10px 20px;
+  padding:2px 4px;
+  background-color:#eee;
+  border:1px solid #ccc;
+}
+
+.endpoint-test-body th {
+  text-align:left;
+  vertical-align:top;
+  font-weight:normal;
+  padding-right:4px;
+  padding-top:3px;
+  text-shadow: 1px 1px 0 #ccc;
+}
+.endpoint-test-body thead input[type=button],
+.endpoint-test-body tfoot input[type=button]{
+  width:100%;
+}
+.endpoint-test-body table {
+  border-collapse:collapse;
+  border-spacing:0;
+}
+.endpoint-test-body input[type=text],
+.endpoint-test-body textarea {
+  width: 100%;
+}
+.test-row-remove {
+  width:100%;
+}
+.test-attr-toggle {
+  color:#aaa;
+}
+th.test-attr-toggle {
+  text-shadow:none;
+  vertical-align:middle;
+}
+.test-attr-included {
+  color:#000;
+}
+
+.tab-container {
+  margin: 0 auto;
+}
+.tab-container > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background:#ddd;
+  border-bottom:1px solid #aaa;
+}
+.tab-container > ul > li {
+  background: #ccc;
+  color: #222;
+  display: inline-block;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.tab-container > ul > li.current {
+  background: #aaa;
+}
+.tab-container > div {
+  display: none;
+  background: #ededed;
+}
+.tab-container > div.current {
+  display: inherit;
+}
+
+.tab-container .test-json {
+  height: 100px;
+}
