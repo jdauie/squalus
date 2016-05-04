@@ -69,6 +69,10 @@ th.test-attr-toggle {
   color:#000;
 }
 
+.test-hidden {
+  display:none;
+}
+
 .tab-container {
   margin: 0 auto;
 }

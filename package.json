@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "eslint *.js src --ext .js --cache",
     "build": "npm run lint && gulp",
+    "watch": "gulp watch",
+    "dev": "gulp server",
     "test": "gulp test"
   },
   "repository": {

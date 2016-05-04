@@ -22,7 +22,7 @@ gulp.task('test', ['babel'], () =>
     })
 );
 
-gulp.task('watch-test', () =>
+gulp.task('watch', () =>
   gulp.watch(['src/**', 'test/**'], ['test'])
 );
 
@@ -60,6 +60,6 @@ gulp.task('server', ['webpack'], () => {
     hot: true,
   }).listen(8080, 'localhost', (err) => {
     if (err) throw new gutil.PluginError('webpack-dev-server', err);
-    gutil.log('[webpack-dev-server]', 'http://localhost:8080/webpack-dev-server/index.html');
+    gutil.log('[webpack-dev-server]', 'http://localhost:8080/webpack-dev-server');
   });
 });

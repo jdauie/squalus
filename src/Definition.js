@@ -384,7 +384,7 @@ export default class Definition {
 
   switchTab(index) {
     const divs = this._body.querySelectorAll('.tab-container > div');
-    const lis = this._body.querySelectorAll('.tab-container > div');
+    const lis = this._body.querySelectorAll('.tab-container > ul > li');
 
     for (let i = 0; i < divs.length; i++) {
       divs[i].classList.toggle('current', i === index);
@@ -401,17 +401,15 @@ export default class Definition {
 
   submit() {
     // todo: trap parse errors
-    const url = this.getPopulatedUrl();
-    const method = this._method;
     const value = JSON.stringify(this.value());
 
     const options = {
-      method,
+      method: this._method,
       headers: {
         'Content-Type': 'application/json',
       },
     };
-    if (['PUT', 'POST', 'PATCH'].includes(method)) {
+    if (['PUT', 'POST', 'PATCH'].includes(this._method)) {
       options.body = value;
     }
 
@@ -480,7 +478,7 @@ export default class Definition {
   }
 
   static onTabSwitch(event, def) {
-    (def || this.closest(event.target)).switchTab(event.target.previousSibling ? 1 : 0);
+    (def || this.closest(event.target)).switchTab(event.target.previousElementSibling ? 1 : 0);
   }
 
   static closest(elem) {
