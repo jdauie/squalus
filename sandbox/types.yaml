@@ -14,18 +14,18 @@ ReminderUpdate: SingleDate|WeeklyRecurrence|MonthlyRecurrence
 ReminderCreate[ReminderUpdate]:
   TemplateId: uint
 
-xml: >
-  content-type(text/xml,application/xml)
-png: >
-  content-type(image/png) &&
-  signature(89 50 4E 47 0D 0A 1A 0A)
-jpeg: >
-  content-type(image/jpeg) &&
-  signature(
-    FF D8 FF DB,
-    FF D8 FF E0 nn nn 4A 46 49 46 00 01,
-    FF D8 FF E1 nn nn 45 78 69 66 00 00
-  )
+#xml: >
+#  content-type(text/xml,application/xml)
+#png: >
+#  content-type(image/png) &&
+#  signature(89 50 4E 47 0D 0A 1A 0A)
+#jpeg: >
+#  content-type(image/jpeg) &&
+#  signature(
+#    FF D8 FF DB,
+#    FF D8 FF E0 nn nn 4A 46 49 46 00 01,
+#    FF D8 FF E1 nn nn 45 78 69 66 00 00
+#  )
 
 TestObjectScalars:
   IntullableEnumerated: int{1,2,4}?
@@ -76,7 +76,7 @@ TestObjectAnyInheritanceParent:
 
 TestObjectAnyInheritanceBranch1[TestObjectAnyInheritanceParent]:
   Type: string{blah,blorg}
-  B1: null
+  B1: string
 
 TestObjectAnyInheritanceBranch2[TestObjectAnyInheritanceParent]:
   Type: string{flobber,flutter}
@@ -84,9 +84,9 @@ TestObjectAnyInheritanceBranch2[TestObjectAnyInheritanceParent]:
 
 TestObjectAnyInheritance: TestObjectAnyInheritanceBranch1|TestObjectAnyInheritanceBranch2
 
-TestMapStringString: {string => string}
+TestMapStringString: string => string
 
-TestMapStringObject: {string => TestObjectAnyInheritance}
+TestMapStringObject: string => TestObjectAnyInheritance
 
 TestArray: TestObjectMultipleInheritance[]
 
