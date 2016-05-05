@@ -1,9 +1,5 @@
 import { default as $ } from './../Tag';
 
-function getLastToken(str) {
-  return str.substr(str.lastIndexOf('_') + 1);
-}
-
 export default class Any {
 
   constructor(types) {
@@ -14,7 +10,7 @@ export default class Any {
   build() {
     this._node = $('div', { _squalusType: this },
       $('select', { class: 'test-option' },
-        Array.from(this._types.keys(), key => $('option', getLastToken(key)))
+        Array.from(this._types.keys(), key => $('option', key))
       ),
       Array.from(this._types.values(), value => $('div', { class: 'test-option' }, value.build()))
     );
@@ -22,18 +18,17 @@ export default class Any {
   }
 
   value() {
-    return this._types[this._node.firstElementChild.selectedIndex].value();
+    return Array.from(this._types.values())[this._node.firstElementChild.selectedIndex].value();
   }
 
-  populate(data, path, types) {
-    const current = types[path];
-
-    const type = this._types.find((t) => t.name() === current || current.endsWith(`_${getLastToken(t.name())}`));
+  populate(data) {
+    // todo: validate data to determine branch
+    const type = null;
 
     const select = this._node.firstElementChild;
     select.value = type.name();
 
-    // trigger change event
+    // todo: trigger change event
 
     type.populate(data);
   }

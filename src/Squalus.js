@@ -1,3 +1,4 @@
+import { default as $ } from './Tag';
 import Definition from './Definition';
 import Any from './Type/Any';
 import Vector from './Type/Vector';
@@ -6,9 +7,12 @@ import Attribute from './Type/Attribute';
 export default class Squalus {
 
   static build(tests) {
+    const root = document.getElementById('api-root');
+    const ul = root.appendChild($('ul', { class: 'api-tests' }));
+
     tests.forEach(test => {
-      const def = new Definition(test.id, test.url, test.method, test.params, test.data);
-      def.build();
+      const def = new Definition(test.url, test.method, test.params, test.data);
+      ul.appendChild(def.build());
     });
 
     const events = {
@@ -28,8 +32,7 @@ export default class Squalus {
       },
     };
 
-    const root = document.getElementById('api-root');
-
+    // handle events
     Object.keys(events).forEach(type => {
       root.addEventListener(type, e => {
         if (e.target) {
@@ -44,6 +47,12 @@ export default class Squalus {
           }
         }
       });
+    });
+
+    // initialize selection states
+    Array.from(root.querySelectorAll('select')).forEach(elem => {
+      const event = new Event('change', { bubbles: true });
+      elem.dispatchEvent(event);
     });
   }
 }

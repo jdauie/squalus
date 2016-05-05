@@ -43,7 +43,7 @@ export default class Scalar {
     if (this._type === 'null') {
       return null;
     } else if (this._type === 'bool') {
-      return this._node.prop('checked');
+      return this._node.checked;
     }
 
     let val = this._node.value;

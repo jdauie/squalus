@@ -11,7 +11,7 @@ import Result from './Result';
 function closestAncestorByTagName(elem, tagName) {
   let e = elem.parentNode;
   while (e) {
-    if (e.tagName === tagName) {
+    if (e.tagName.toLowerCase() === tagName) {
       return e;
     }
     e = e.parentNode;
@@ -48,7 +48,7 @@ function convertValueToParam(val, key, query) {
 
 function convertToMap(obj) {
   const map = new Map();
-  Object.keys(map).forEach(key => {
+  Object.keys(obj).forEach(key => {
     map.set(key, obj[key]);
   });
   return map;
@@ -101,8 +101,16 @@ function createTypeFromDef(definition) {
 
   // scalar values shortcut
   if (type.endsWith('}')) {
-    values = type.substring(type.indexOf('{') + 1, type.length - 1).split(',');
+    let constraint = type.substring(type.indexOf('{') + 1, type.length - 1);
     type = type.substring(0, type.indexOf('{'));
+    if (type === 'int' || type === 'uint') {
+      constraint = constraint.replace(/(\d+)-(\d+)/, (match, p1, p2) => {
+        const start = parseInt(p1, 10);
+        const count = parseInt(p2, 10) - start + 1;
+        return [...new Array(count)].map((_, i) => i + start).join(',');
+      });
+    }
+    values = constraint.split(',');
   }
 
   // nullable shortcut (string? => string|null)
@@ -114,9 +122,12 @@ function createTypeFromDef(definition) {
   const isScalar = [
     'null',
     'int',
+    'uint',
     'float',
     'string',
     'bool',
+    'date',
+    'datetime',
   ].includes(type);
 
   // scalar values
@@ -162,7 +173,7 @@ function createTypeFromDef(definition) {
       throw new Error('object must have attributes (or be a map instead)');
     }
     return new ObjectType(Object.keys(def.attributes).map(a =>
-      new AttributeType(a, createTypeFromDef(def.attributes[a]), def.attributes[a].required))
+      new AttributeType(a, createTypeFromDef(def.attributes[a]), !(def.attributes[a].required === false)))
     );
   } else if (type === 'map') {
     return new MapType(createTypeFromDef(item), def.key, def.required);
@@ -188,19 +199,14 @@ function createTypeFromDef(definition) {
 
 export default class Definition {
 
-  constructor(id, url, method, params, type, responseType) {
+  constructor(url, method, params, type, responseType) {
     this._url = url;
     this._method = method;
     this._params = params;
     this._type = createTypeFromDef(type);
     this._responseType = createTypeFromDef(responseType);
 
-    this._test = document.getElementById(id);
-    this._body = this._test.querySelector('.endpoint-test-body');
-    this._json = null;
-
-    this._body.innerHTML = '';
-    this._body._squalusDef = this;
+    this._body = null;
   }
 
   syncTabParams() {
@@ -231,7 +237,7 @@ export default class Definition {
     }
 
     // use the json tab (instead of the form) if it is selected
-    if (this._json && closestAncestorByTagName(this._json).classList.contains('current')) {
+    if (this._json && closestAncestorByTagName(this._json, 'div').classList.contains('current')) {
       let val = this._json.value;
       if (val === '') {
         val = null;
@@ -333,7 +339,16 @@ export default class Definition {
   }
 
   build() {
-    const body = this._body;
+    const item = $('li',
+      $('div', { class: 'endpoint-test' },
+        $('div', { class: 'endpoint-test-body' })
+      )
+    );
+    this._body = item.querySelector('.endpoint-test-body');
+    this._json = null;
+
+    this._body.innerHTML = '';
+    this._body._squalusDef = this;
 
     let table = this._type ? this._type.build() : $('table');
 
@@ -372,14 +387,16 @@ export default class Definition {
         $('div', { class: 'current' }, table),
         $('div', json)
       );
-      body.appendChild(container);
+      this._body.appendChild(container);
 
       // todo: trigger tab switch
     } else {
-      body.append(table);
+      this._body.append(table);
     }
 
     this._json = this._body.querySelector('.test-json');
+
+    return item;
   }
 
   switchTab(index) {
@@ -401,6 +418,7 @@ export default class Definition {
 
   submit() {
     // todo: trap parse errors
+    const url = this.getPopulatedUrl();
     const value = JSON.stringify(this.value());
 
     const options = {
