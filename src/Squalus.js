@@ -65,10 +65,11 @@ function parseTokensFromType(type, dependenciesOnly) {
    *   type1 => type2
    *   int{1,2,7-9}?
    *   string?[]?
+   *   type1,type2 # this only applies to inheritance
    * todo:
    *   content-type(image/png) && signature(89 50 4E 47 0D 0A 1A 0A)
    */
-  const tokens = type.split(/([|{}()?:]|&&|\[]|=>)/).map(t => t.trim()).filter(t => t !== '');
+  const tokens = type.split(/([|{}()?:,]|&&|\[]|=>)/).map(t => t.trim()).filter(t => t !== '');
 
   // expand shortcuts
   for (let i = 0; i < tokens.length; i++) {
@@ -101,7 +102,7 @@ function parseTokensFromType(type, dependenciesOnly) {
         ++i;
       }
       continue;
-    } else if (tokens[i] === '[]' || tokens[i] === '=>' || tokens[i] === '|') {
+    } else if (tokens[i] === '[]' || tokens[i] === '=>' || tokens[i] === '|' || tokens[i] === ',') {
       continue;
     }
     dependencies.push(tokens[i]);
@@ -110,7 +111,7 @@ function parseTokensFromType(type, dependenciesOnly) {
   return dependencies;
 }
 
-function buildKnownDependencies() {
+function getKnownScalarTypes() {
   return [
     'null',
     'int',
@@ -121,7 +122,11 @@ function buildKnownDependencies() {
     'date',
     'datetime',
     'guid',
-  ].map(t => ({
+  ];
+}
+
+function buildKnownDependencies() {
+  return getKnownScalarTypes().map(t => ({
     name: t,
   }));
 }
@@ -147,7 +152,12 @@ function scopify(iter, scope) {
   if (typeof iter === 'string') {
     source = [iter];
   }
-  return Array.from(source, item => ((item.indexOf('.') === -1) ? `${scope}.${item}` : item));
+  const result = Array.from(source, item => ((item.indexOf('.') === -1 && !getKnownScalarTypes().includes(item))
+      ? `${scope}.${item}`
+      : item)
+  );
+
+  return (typeof iter === 'string') ? result[0] : result;
 }
 
 function parseRoot(root) {
@@ -166,8 +176,9 @@ function parseRoot(root) {
       }
 
       parsed.push({
-        name: scopify(name),
+        name: scopify(name, scope),
         requires: scopify(requires, scope),
+        data: type,
       });
     });
   });
@@ -175,38 +186,34 @@ function parseRoot(root) {
   return parsed;
 }
 
-// function buildChildType(key, def, lookup) {
-//   if (typeof def === 'string') {
-//     //
-//   } else {
-//     Object.keys(def).forEach(key => {
-//       const type = def[key];
-//
-//       if (typeof type === 'string') {
-//         //parseTokensFromType(type, true).forEach(t => dependencies.add(t));
-//       } else {
-//         //parseChild(type).forEach(t => dependencies.add(t));
-//       }
-//     });
-//   }
-// }
-//
-// function buildRootType(key, def, lookup) {
-//   if (def === undefined) {
-//     // todo: scalar
-//   }
-//
-//   // todo: inheritance is only allowed on object definitions (not strings refs)
-//
-//   // parse key
-//   const tokens = parseTokensFromKey(key);
-//
-//   if (typeof def === 'string') {
-//     // parse
-//   } else {
-//     Object.keys(def).forEach(key2 => buildChildType(key2, def[key2], lookup));
-//   }
-// }
+function buildChildType(key, def, map) {
+  if (typeof def === 'string') {
+    //
+  } else {
+    Object.keys(def).forEach(key => {
+      const type = def[key];
+
+      if (typeof type === 'string') {
+        //parseTokensFromType(type, true).forEach(t => dependencies.add(t));
+      } else {
+        //parseChild(type).forEach(t => dependencies.add(t));
+      }
+    });
+  }
+}
+
+function buildRootType(key, def, map) {
+  if (def === undefined) {
+    // todo: scalar
+    return null;
+  }
+
+  if (typeof def === 'string') {
+    const tokens = parseTokensFromType(def);
+  } else {
+    Object.keys(def).forEach(attr => buildChildType(attr, def[attr], map));
+  }
+}
 
 export default class Squalus {
 
@@ -216,10 +223,10 @@ export default class Squalus {
     const sorted = toposort(dependencies, d => d.name, d => d.requires);
     console.log(sorted);
 
-    // const lookup = new Map();
-    // const built = sorted.map(type => buildRootType(type.key, types[type.key], lookup));
-    // console.log(lookup);
-    // console.log(built);
+    const lookup = new Map();
+    const built = sorted.map(type => buildRootType(type.key, type.data, lookup));
+    console.log(lookup);
+    console.log(built);
   }
 
   static buildTests(tests) {
