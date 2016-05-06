@@ -6,7 +6,7 @@ import webpack from 'webpack';
 import webpackConfig from './webpack.config.babel';
 import WebpackDevServer from 'webpack-dev-server';
 
-gulp.task('default', ['webpack']);
+gulp.task('default', ['webpack:build']);
 
 gulp.task('babel', () =>
   gulp.src('src/**/*.js')
@@ -26,18 +26,17 @@ gulp.task('watch', () =>
   gulp.watch(['src/**', 'test/**'], ['test'])
 );
 
-gulp.task('webpack', ['test'], (callback) => {
-  const myConfig = Object.create(webpackConfig);
-  myConfig.devtool = 'source-map';
-  myConfig.plugins = [
+gulp.task('webpack:build', [], (callback) => {
+  const config = Object.create(webpackConfig);
+  config.devtool = 'source-map';
+  config.plugins = [
     new webpack.optimize.DedupePlugin(),
-    // new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.UglifyJsPlugin(),
   ];
 
-  // run webpack
-  webpack(myConfig, (err, stats) => {
+  webpack(config, (err, stats) => {
     if (err) throw new gutil.PluginError('webpack', err);
-    gutil.log('[webpack]', stats.toString({
+    gutil.log('[webpack:build]', stats.toString({
       colors: true,
       progress: true,
     }));
@@ -45,15 +44,13 @@ gulp.task('webpack', ['test'], (callback) => {
   });
 });
 
-gulp.task('server', ['webpack'], () => {
-  // modify some webpack config options
-  const myConfig = Object.create(webpackConfig);
-  myConfig.devtool = 'eval';
-  myConfig.debug = true;
+gulp.task('webpack:server', ['webpack:build'], () => {
+  const config = Object.create(webpackConfig);
+  config.devtool = 'source-map';
+  config.debug = true;
 
-  // Start a webpack-dev-server
-  new WebpackDevServer(webpack(myConfig), {
-    publicPath: `/${myConfig.output.publicPath}`,
+  new WebpackDevServer(webpack(config), {
+    publicPath: `/${config.output.publicPath}`,
     stats: {
       colors: true,
     },

@@ -7,6 +7,10 @@ export default class Any {
     this._node = null;
   }
 
+  get types() {
+    return this._types;
+  }
+
   build() {
     this._node = $('div', { _squalusType: this },
       $('select', { class: 'test-option' },

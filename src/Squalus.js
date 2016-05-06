@@ -4,6 +4,8 @@ import Any from './Type/Any';
 import Vector from './Type/Vector';
 import Attribute from './Type/Attribute';
 
+const registeredTypes = new Map();
+
 function toposort(elements, getName, getRequires) {
   const edges = new Map();
   const s = [];
@@ -128,6 +130,7 @@ function getKnownScalarTypes() {
 function buildKnownDependencies() {
   return getKnownScalarTypes().map(t => ({
     name: t,
+    data: `scalar(${t})`,
   }));
 }
 
@@ -186,33 +189,39 @@ function parseRoot(root) {
   return parsed;
 }
 
-function buildChildType(key, def, map) {
+function buildType(def) {
   if (typeof def === 'string') {
-    //
-  } else {
-    Object.keys(def).forEach(key => {
-      const type = def[key];
+    const tokens = parseTokensFromType(def).join(' ');
+    return tokens;
+  }
 
-      if (typeof type === 'string') {
-        //parseTokensFromType(type, true).forEach(t => dependencies.add(t));
-      } else {
-        //parseChild(type).forEach(t => dependencies.add(t));
+  const type = {};
+
+  Object.keys(def).forEach(attr => {
+    const value = def[attr];
+    if (attr === '^') {
+      if (typeof value !== 'string') {
+        throw new Error('inheritance attribute must be a string');
       }
-    });
-  }
-}
 
-function buildRootType(key, def, map) {
-  if (def === undefined) {
-    // todo: scalar
-    return null;
-  }
+      parseTokensFromType(value).filter(t => t !== ',').forEach(parentName => {
+        const parent = registeredTypes[parentName];
+        if (parent instanceof Any) {
+          // create inherited version of each object and re-aggregate
+        } else {
+          Object.keys(parent).forEach(parentAttr => {
+            type[parentAttr] = parent[parentAttr];
+          });
+        }
+      });
 
-  if (typeof def === 'string') {
-    const tokens = parseTokensFromType(def);
-  } else {
-    Object.keys(def).forEach(attr => buildChildType(attr, def[attr], map));
-  }
+      type[attr] = tokens;
+    } else {
+      type[attr] = buildType(value);
+    }
+  });
+
+  return type;
 }
 
 export default class Squalus {
@@ -223,10 +232,8 @@ export default class Squalus {
     const sorted = toposort(dependencies, d => d.name, d => d.requires);
     console.log(sorted);
 
-    const lookup = new Map();
-    const built = sorted.map(type => buildRootType(type.key, type.data, lookup));
-    console.log(lookup);
-    console.log(built);
+    sorted.forEach((type, name) => registeredTypes.set(name, buildType(type.data)));
+    console.log(registeredTypes);
   }
 
   static buildTests(tests) {
