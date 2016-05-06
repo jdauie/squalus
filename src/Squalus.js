@@ -4,9 +4,225 @@ import Any from './Type/Any';
 import Vector from './Type/Vector';
 import Attribute from './Type/Attribute';
 
+function toposort(elements, getName, getRequires) {
+  const edges = new Map();
+  const s = [];
+
+  const sources = new Map();
+  elements.forEach(elem => sources.set(getName(elem), elem));
+
+  sources.forEach(source => {
+    const requires = getRequires(source);
+    if (requires && requires.length) {
+      requires.forEach(dependency => {
+        if (!sources.has(dependency)) {
+          throw new Error(`Unknown dependency ${dependency}`);
+        }
+        if (!edges.has(dependency)) {
+          edges.set(dependency, []);
+        }
+        edges.get(dependency).push(getName(source));
+      });
+    } else {
+      s.push(source);
+    }
+  });
+
+  let parents;
+  const sorted = new Map();
+  while (s.length > 0) {
+    const nSource = s.pop();
+    const n = getName(nSource);
+    sorted.set(n, nSource);
+    if (edges.has(n)) {
+      parents = edges.get(n);
+      while (parents.length > 0) {
+        const m = parents.pop();
+        const mSource = sources.get(m);
+        const requires = getRequires(mSource);
+        if (!requires || !requires.find(d => !sorted.has(d))) {
+          s.push(mSource);
+        }
+      }
+    }
+  }
+
+  edges.forEach(value => {
+    if (value.size > 0) {
+      throw new Error('Graph cycle; unable to sort');
+    }
+  });
+
+  return sorted;
+}
+
+function parseTokensFromType(type, dependenciesOnly) {
+  /*
+   * e.g.
+   *   type
+   *   type:map(Name,Value)
+   *   type1|type2|type3
+   *   type1 => type2
+   *   int{1,2,7-9}?
+   *   string?[]?
+   * todo:
+   *   content-type(image/png) && signature(89 50 4E 47 0D 0A 1A 0A)
+   */
+  const tokens = type.split(/([|{}()?:]|&&|\[]|=>)/).map(t => t.trim()).filter(t => t !== '');
+
+  // expand shortcuts
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] === '?') {
+      tokens.splice(i, 1, '|', 'null');
+      --i;
+    }
+  }
+
+  if (!dependenciesOnly) {
+    return tokens;
+  }
+
+  /*
+   * remove
+   *   |
+   *   []
+   *   {...}
+   *   :func(...)
+   */
+  const dependencies = [];
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] === '{') {
+      while (tokens[i] !== '}') {
+        ++i;
+      }
+      continue;
+    } else if (tokens[i] === ':') {
+      while (tokens[i] !== ')') {
+        ++i;
+      }
+      continue;
+    } else if (tokens[i] === '[]' || tokens[i] === '=>' || tokens[i] === '|') {
+      continue;
+    }
+    dependencies.push(tokens[i]);
+  }
+
+  return dependencies;
+}
+
+function buildKnownDependencies() {
+  return [
+    'null',
+    'int',
+    'uint',
+    'float',
+    'string',
+    'bool',
+    'date',
+    'datetime',
+    'guid',
+  ].map(t => ({
+    name: t,
+  }));
+}
+
+function parseChild(types) {
+  const dependencies = new Set();
+
+  Object.keys(types).forEach(key => {
+    const type = types[key];
+
+    if (typeof type === 'string') {
+      parseTokensFromType(type, true).forEach(t => dependencies.add(t));
+    } else {
+      parseChild(type).forEach(t => dependencies.add(t));
+    }
+  });
+
+  return dependencies;
+}
+
+function scopify(iter, scope) {
+  let source = iter;
+  if (typeof iter === 'string') {
+    source = [iter];
+  }
+  return Array.from(source, item => ((item.indexOf('.') === -1) ? `${scope}.${item}` : item));
+}
+
+function parseRoot(root) {
+  const parsed = [];
+
+  Object.keys(root).forEach(scope => {
+    Object.keys(root[scope]).forEach(name => {
+      const type = root[scope][name];
+
+      const requires = new Set();
+
+      if (typeof type === 'string') {
+        parseTokensFromType(type, true).forEach(t => requires.add(t));
+      } else {
+        parseChild(type).forEach(t => requires.add(t));
+      }
+
+      parsed.push({
+        name: scopify(name),
+        requires: scopify(requires, scope),
+      });
+    });
+  });
+
+  return parsed;
+}
+
+// function buildChildType(key, def, lookup) {
+//   if (typeof def === 'string') {
+//     //
+//   } else {
+//     Object.keys(def).forEach(key => {
+//       const type = def[key];
+//
+//       if (typeof type === 'string') {
+//         //parseTokensFromType(type, true).forEach(t => dependencies.add(t));
+//       } else {
+//         //parseChild(type).forEach(t => dependencies.add(t));
+//       }
+//     });
+//   }
+// }
+//
+// function buildRootType(key, def, lookup) {
+//   if (def === undefined) {
+//     // todo: scalar
+//   }
+//
+//   // todo: inheritance is only allowed on object definitions (not strings refs)
+//
+//   // parse key
+//   const tokens = parseTokensFromKey(key);
+//
+//   if (typeof def === 'string') {
+//     // parse
+//   } else {
+//     Object.keys(def).forEach(key2 => buildChildType(key2, def[key2], lookup));
+//   }
+// }
+
 export default class Squalus {
 
-  static build(tests) {
+  static buildTypes(root) {
+    // check names and dependencies
+    const dependencies = buildKnownDependencies().concat(parseRoot(root));
+    const sorted = toposort(dependencies, d => d.name, d => d.requires);
+    console.log(sorted);
+
+    // const lookup = new Map();
+    // const built = sorted.map(type => buildRootType(type.key, types[type.key], lookup));
+    // console.log(lookup);
+    // console.log(built);
+  }
+
+  static buildTests(tests) {
     const root = document.getElementById('api-root');
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 

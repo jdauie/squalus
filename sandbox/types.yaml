@@ -1,18 +1,22 @@
-SingleDate:
-  ReminderDate: date
 
-WeeklyRecurrence:
-  IntervalUnit: string{weekly}
-  IntervalOffset: uint{0-7}
+Reminder:
 
-MonthlyRecurrence:
-  IntervalUnit: string{monthly}
-  IntervalOffset: uint{1-28}
+  Date:
+    ReminderDate: date
 
-ReminderUpdate: SingleDate|WeeklyRecurrence|MonthlyRecurrence
+  Weekly:
+    IntervalUnit: string{weekly}
+    IntervalOffset: uint{0-7}
 
-ReminderCreate[ReminderUpdate]:
-  TemplateId: uint
+  Monthly:
+    IntervalUnit: string{monthly}
+    IntervalOffset: uint{1-28}
+
+  Update: Date|Weekly|Monthly
+
+  Create:
+    ^: Update
+    TemplateId: uint
 
 #xml: >
 #  content-type(text/xml,application/xml)
@@ -27,83 +31,90 @@ ReminderCreate[ReminderUpdate]:
 #    FF D8 FF E1 nn nn 45 78 69 66 00 00
 #  )
 
-TestObjectScalars:
-  IntullableEnumerated: int{1,2,4}?
-  IntNullable: int?
-  IntEnumerated: int{56,290,193470}
-  UintEnumeratedRange: int{1,5-9}
-  String: string
-  StringNullable: string?
-  StringNullableExplicit: string|null
-  StringEnumerated: string{I,can,haz,cheezburger}
-  Bool: bool
-  BoolEnumerated: bool{true}
-  BoolNullable: bool?
+Test:
 
-TestObjectArrays:
-  ArrayOfString: string[]
-  NullableArrayOfString: string[]?
-  NullableArrayOfNullableString: string?[]?
+  ObjectScalars:
+    IntNullableEnumerated: int{1,2,4}?
+    IntNullable: int?
+    IntEnumerated: int{56,290,193470}
+    UintEnumeratedRange: int{1,5-9}
+    String: string
+    StringNullable: string?
+    StringNullableExplicit: string|null
+    StringEnumerated: string{I,can,haz,cheezburger}
+    Bool: bool
+    BoolEnumerated: bool{true}
+    BoolNullable: bool?
 
-TestObjectSimpleParent:
-  Guid: guid
-  Float: float
+  ObjectArrays:
+    ArrayOfString: string[]
+    NullableArrayOfString: string[]?
+    NullableArrayOfNullableString: string?[]?
 
-TestObjectSimple[TestObjectSimpleParent]:
-  Date: date
+  ObjectSimpleParent:
+    Guid: guid
+    Float: float
 
-TestObjectMultipleInheritanceParent1:
-  OptionalString?: string
+  ObjectSimple:
+    ^: ObjectSimpleParent
+    Date: date
 
-TestObjectMultipleInheritanceParent2:
-  OptionalBool?: bool
+  ObjectMultipleInheritanceParent1:
+    OptionalString?: string
 
-TestObjectMultipleInheritance[TestObjectMultipleInheritanceParent1,TestObjectMultipleInheritanceParent1]:
-  Date: date
+  ObjectMultipleInheritanceParent2:
+    OptionalBool?: bool
 
-TestObjectAnyBranch1:
-  FieldKey: string{foo}
-  FieldOther: int
+  ObjectMultipleInheritance:
+    ^: ObjectMultipleInheritanceParent1, ObjectMultipleInheritanceParent2
+    Date: date
 
-TestObjectAnyBranch2:
-  FieldKey: string{bar}
-  FieldOther: datetime
+  ObjectAnyBranch1:
+    FieldKey: string{foo}
+    FieldOther: int
 
-TestObjectAny: TestObjectAnyBranch1|TestObjectAnyBranch1
+  ObjectAnyBranch2:
+    FieldKey: string{bar}
+    FieldOther: datetime
 
-TestObjectAnyInheritanceParent:
-  Id: guid
+  ObjectAny: ObjectAnyBranch1|ObjectAnyBranch1
 
-TestObjectAnyInheritanceBranch1[TestObjectAnyInheritanceParent]:
-  Type: string{blah,blorg}
-  B1: string
+  ObjectAnyInheritanceParent:
+    Id: guid
 
-TestObjectAnyInheritanceBranch2[TestObjectAnyInheritanceParent]:
-  Type: string{flobber,flutter}
-  B2: int{1,2}|string|null
+  ObjectAnyInheritanceBranch1:
+    ^: ObjectAnyInheritanceParent
+    Type: string{blah,blorg}
+    B1: string
 
-TestObjectAnyInheritance: TestObjectAnyInheritanceBranch1|TestObjectAnyInheritanceBranch2
+  ObjectAnyInheritanceBranch2:
+    ^: ObjectAnyInheritanceParent
+    Type: string{flobber,flutter}
+    B2: int{1,2}|string|null
 
-TestMapStringString: string => string
+  ObjectAnyInheritance: ObjectAnyInheritanceBranch1|ObjectAnyInheritanceBranch2
 
-TestMapStringObject: string => TestObjectAnyInheritance
+  MapStringString: string => string
 
-TestArray: TestObjectMultipleInheritance[]
+  MapStringObject: string => ObjectAnyInheritance
 
-TestObjectKnown:
-  Setting1: bool
-  Setting2: int{0-6}
-  Setting3: string{val1,val2}
+  Array: ObjectMultipleInheritance[]
 
-TestObjectKnownInheritance[TestObjectKnown:map(Name,Value)]:
-  Hive: string{internal,global,user}
+  ObjectKnown:
+    Setting1: bool
+    Setting2: int{0-6}
+    Setting3: string{val1,val2}
 
-TestObjectAll:
-  Scalars: TestObjectScalars
-  Arrays:
-    First: TestObjectArrays
-    Second: TestArray
-  Intermediate: TestObjectAnyBranch1
-  Map1: TestMapStringString
-  Map2: TestMapStringObject
-  Known: TestArrayObjectKnownInheritance[]
+  ObjectKnownInheritance:
+    ^: ObjectKnown:map(Name,Value)
+    Hive: string{internal,global,user}
+
+  ObjectAll:
+    Scalars: ObjectScalars
+    Arrays:
+      First: ObjectArrays
+      Second: Array
+    Intermediate: ObjectAnyBranch1
+    Map1: MapStringString
+    Map2: MapStringObject
+    Known: ObjectKnownInheritance[]
