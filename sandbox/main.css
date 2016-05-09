@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial;
-  //font-size: 10pt;
+  font-size:12px;
 }
 
 pre,
@@ -22,11 +22,9 @@ ul {
 }
 .api-tests {
   margin-left:10px;
-  counter-reset:test-index;
 }
 .endpoint-test {
   margin:0 0 4px 0;
-  counter-increment:test-index;
 }
 .endpoint-test-body {
   margin:10px 0 10px 20px;
@@ -63,7 +61,6 @@ ul {
 }
 th.test-attr-toggle {
   text-shadow:none;
-  vertical-align:middle;
 }
 .test-attr-included {
   color:#000;

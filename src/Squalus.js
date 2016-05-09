@@ -3,6 +3,7 @@ import Definition from './Definition';
 import Any from './Type/Any';
 import Vector from './Type/Vector';
 import Attribute from './Type/Attribute';
+import Obj from './Type/Object';
 
 const registeredTypes = new Map();
 
@@ -208,6 +209,13 @@ function buildType(def) {
         const parent = registeredTypes[parentName];
         if (parent instanceof Any) {
           // create inherited version of each object and re-aggregate
+          const inheritedTypes = new Map();
+          parent.types.forEach((branchType, key) => {
+            if (!(branchType instanceof Obj)) {
+              throw new Error('inheritance from branch with non-object');
+            }
+            const inheritedAttrs = branchType.attributes.map(branchAttr => Object.clone(branchAttr, true));
+          });
         } else {
           Object.keys(parent).forEach(parentAttr => {
             type[parentAttr] = parent[parentAttr];
