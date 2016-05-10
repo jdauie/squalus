@@ -12,6 +12,10 @@ export default class Nullable {
     return this._type.build();
   }
 
+  clone() {
+    return new Nullable(this._type.clone());
+  }
+
   value() {
     let val = this._type.value();
     if (val === '') {

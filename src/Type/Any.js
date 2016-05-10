@@ -11,6 +11,12 @@ export default class Any {
     return this._types;
   }
 
+  clone() {
+    const types = new Map();
+    this._types.forEach((type, key) => types.set(key, type.clone()));
+    return new Any(types);
+  }
+
   build() {
     this._node = $('div', { _squalusType: this },
       $('select', { class: 'test-option' },

@@ -18,6 +18,10 @@ Reminder:
     ^: Update
     TemplateId: uint
 
+  Get:
+    ^: Create
+    Id: guid
+
 #xml: >
 #  content-type(text/xml,application/xml)
 #png: >
@@ -105,8 +109,10 @@ Test:
     Setting2: int{0-6}
     Setting3: string{val1,val2}
 
+  ObjectKnownAny: ObjectKnown:map(Name,Value)
+
   ObjectKnownInheritance:
-    ^: ObjectKnown:map(Name,Value)
+    ^: ObjectKnownAny
     Hive: string{internal,global,user}
 
   ObjectAll:

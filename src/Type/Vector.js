@@ -1,5 +1,4 @@
 import { default as $ } from './../Tag';
-import 'js-object-clone';
 
 export default class Vector {
 
@@ -12,6 +11,10 @@ export default class Vector {
 
   name() {
     return `${this._type.name()}[]`;
+  }
+
+  clone() {
+    return new Vector(this._type.clone());
   }
 
   build() {
@@ -45,7 +48,7 @@ export default class Vector {
   }
 
   add() {
-    const clone = Object.clone(this._type, true);
+    const clone = this._type.clone();
     this._rows.push(clone);
     this._body.appendChild($('tr',
       $('th', $('input', { type: 'button', class: 'test-row-remove', value: '-' })),

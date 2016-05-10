@@ -1,60 +1,24 @@
 ---
-- url: "some/url/{id}"
-  method: PUT
-  params:
-    id: int
-  data:
-    type: object
-    attributes:
-      Attr1: int{1,2,4}?
-      Attr2:
-        type: string[]
-        required: false
-      Attr3:
-        type: array
-        item: string
-        required: false
-      Attr4:
-        type: object
-        attributes:
-          SubAttr1: bool
-          SubAttr2: int
-      Attr5:
-        type: int
-        values: [56, 10324]
-      Attr6: int|float|null
-      Attr7:
-        type: any
-        branches: [string, float]
-      Attr8:
-        type: any
-        branches:
-          BranchName1: string
-          BranchName2:
-            type: object
-            attributes:
-              SubAttr1: string[]?
-
 - url: "api/reminders"
   method: POST
-  data:
-    type: any
-    branches:
-      SingleDate:
-        type: object
-        attributes:
-          ReminderDate: date
-          TemplateId: uint
-      WeeklyRecurrence:
-        type: object
-        attributes:
-          IntervalUnit: string{weekly}
-          IntervalOffset: int{0-7}
-          TemplateId: uint
-      MonthlyRecurrence:
-        type: object
-        attributes:
-          IntervalUnit: string{monthly}
-          IntervalOffset: int{1-28}
-          TemplateId: uint
+  data: Reminder.Create
+
+- url: "api/reminders/{id}"
+  method: PUT
+  data: Reminder.Update
+
+- url: "api/reminders/{id}"
+  method: DELETE
+
+- url: "api/reminders"
+  method: GET
+  data: Reminder.Get[]
+
+- url: "api/reminders/{id}"
+  method: GET
+  data: Reminder.Get
+
+- url: "api/test"
+  method: POST
+  data: Test.ObjectAll
 

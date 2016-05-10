@@ -12,6 +12,10 @@ export default class Scalar {
     return this._type;
   }
 
+  clone() {
+    return new Scalar(this._type, this._values);
+  }
+
   build() {
     if (this._type === 'null') {
       this._node = document.createTextNode('');

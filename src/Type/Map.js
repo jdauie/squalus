@@ -1,9 +1,8 @@
 import { default as $ } from './../Tag';
-import 'js-object-clone';
 
 export default class Map {
 
-  constructor(type, key, required) {
+  constructor(key, type, required) {
     this._type = type;
     this._key = key;
     this._required = required;
@@ -16,10 +15,14 @@ export default class Map {
     return `${this._type.name()}{}`;
   }
 
+  clone() {
+    return new Map(this._key.clone(), this._type.clone(), this._required ? this._required.clone() : null);
+  }
+
   build() {
     this._node = $('div', { _squalusType: this },
       $('table',
-        this._body = $('tbody', { class: 'test-map-rows' }),
+        this._body = $('tbody'),
         $('tfoot',
           $('th', $('input', { type: 'button', class: 'test-row-add', value: '+' })),
           $('th'),
@@ -58,17 +61,17 @@ export default class Map {
   }
 
   add(type, key) {
-    const clone = type || Object.clone(this._type, true);
+    const clone = type || this._type.clone();
     this._rows.push(clone);
     const keyField = this._key ? this._key.build() : $('input', { type: 'text', placeholder: 'key' });
     if (key) {
       keyField.value = key;
     }
     this._body.appendChild($('tr',
-      $('th', $('input', { type: 'button', class: 'test-row-remove', value: '-' }),
+        $('th', $('input', { type: 'button', class: 'test-row-remove', value: '-' })),
         $('th', keyField),
         $('td', clone.build())
-      )));
+      ));
     return clone;
   }
 

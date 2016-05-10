@@ -27,7 +27,6 @@
   "license": "ISC",
   "dependencies": {
     "es6-docready": "^1.0.0",
-    "js-object-clone": "^0.4.2",
     "js-yaml": "^3.6.0"
   },
   "devDependencies": {

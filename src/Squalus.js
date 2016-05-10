@@ -4,6 +4,9 @@ import Any from './Type/Any';
 import Vector from './Type/Vector';
 import Attribute from './Type/Attribute';
 import Obj from './Type/Object';
+import Scalar from './Type/Scalar';
+import Nullable from './Type/Nullable';
+import MapType from './Type/Map';
 
 const registeredTypes = new Map();
 
@@ -131,7 +134,7 @@ function getKnownScalarTypes() {
 function buildKnownDependencies() {
   return getKnownScalarTypes().map(t => ({
     name: t,
-    data: `scalar(${t})`,
+    data: t,
   }));
 }
 
@@ -156,7 +159,9 @@ function scopify(iter, scope) {
   if (typeof iter === 'string') {
     source = [iter];
   }
-  const result = Array.from(source, item => ((item.indexOf('.') === -1 && !getKnownScalarTypes().includes(item))
+  const result = Array.from(source, item => ((
+    item.indexOf('{') === -1 && item.indexOf('[') === -1 &&
+    item.indexOf('.') === -1 && !getKnownScalarTypes().includes(item))
       ? `${scope}.${item}`
       : item)
   );
@@ -190,46 +195,120 @@ function parseRoot(root) {
   return parsed;
 }
 
-function buildType(def) {
-  if (typeof def === 'string') {
-    const tokens = parseTokensFromType(def).join(' ');
-    return tokens;
-  }
+function createAttrFromName(name, type) {
+  return new Attribute(name.trim('?'), type, !name.endsWith('?'));
+}
 
-  const type = {};
-
-  Object.keys(def).forEach(attr => {
-    const value = def[attr];
-    if (attr === '^') {
-      if (typeof value !== 'string') {
-        throw new Error('inheritance attribute must be a string');
+function splitArray(array, split) {
+  const chunks = [];
+  let chunk = [];
+  array.forEach(token => {
+    if (token === split) {
+      if (chunk.length) {
+        chunks.push(chunk);
       }
-
-      parseTokensFromType(value).filter(t => t !== ',').forEach(parentName => {
-        const parent = registeredTypes[parentName];
-        if (parent instanceof Any) {
-          // create inherited version of each object and re-aggregate
-          const inheritedTypes = new Map();
-          parent.types.forEach((branchType, key) => {
-            if (!(branchType instanceof Obj)) {
-              throw new Error('inheritance from branch with non-object');
-            }
-            const inheritedAttrs = branchType.attributes.map(branchAttr => Object.clone(branchAttr, true));
-          });
-        } else {
-          Object.keys(parent).forEach(parentAttr => {
-            type[parentAttr] = parent[parentAttr];
-          });
-        }
-      });
-
-      type[attr] = tokens;
+      chunk = [];
     } else {
-      type[attr] = buildType(value);
+      chunk.push(token);
     }
   });
+  if (chunk.length) {
+    chunks.push(chunk);
+  }
+  return chunks;
+}
 
-  return type;
+function buildType(def, scope) {
+  // references
+  if (typeof def === 'string') {
+    const tokens = parseTokensFromType(def);
+
+    const branches = splitArray(tokens, '|');
+    if (branches.length > 1) {
+      const branchMap = new Map();
+      branches.forEach(branch => {
+        branchMap.set(branch, buildType(scopify(branch.join(''), scope)));
+      });
+      return new Any(branchMap);
+    }
+
+    const map = splitArray(tokens, '=>');
+    if (map.length > 1) {
+      return new MapType(buildType(map[0].join(''), scope), buildType(map[1].join(''), scope));
+    }
+
+    if (tokens[tokens.length - 1] === '?') {
+      return new Nullable(buildType(tokens.slice(0, tokens.length - 1).join(''), scope));
+    }
+
+    if (tokens[tokens.length - 1] === '[]') {
+      return new Vector(buildType(tokens.slice(0, tokens.length - 1).join(''), scope));
+    }
+
+    if (tokens[tokens.length - 1] === '}') {
+      // todo: constraints
+      return buildType(tokens.slice(0, tokens.indexOf('{')).join(''), scope);
+      // return new Scalar(buildType(tokens.slice(0, tokens.indexOf('{')).join(''), scope));
+    }
+
+    if (tokens[tokens.length - 1] === ')') {
+      // todo: transform
+      return buildType(tokens.slice(0, tokens.indexOf(':')).join(''), scope);
+    }
+
+    const scopedName = scopify(tokens.join(''), scope);
+    if (registeredTypes.has(scopedName)) {
+      return registeredTypes.get(scopedName).clone();
+    }
+    return new Scalar(scopedName);
+  }
+
+  // check for inheritance
+  const attributeNames = Object.keys(def).filter(key => key !== '^');
+  const inheritanceAttr = def['^'];
+  if (inheritanceAttr) {
+    if (typeof inheritanceAttr !== 'string') {
+      throw new Error('inheritance attribute must be a string');
+    }
+
+    const parents = parseTokensFromType(inheritanceAttr).filter(t => t !== ',').map(parent => {
+      return registeredTypes.get(scopify(parent, scope));
+    });
+
+    if (parents.length === 1 && parents[0] instanceof Any) {
+      const parent = parents[0];
+      if (!Array.from(parent.types.values()).every(branchType => branchType instanceof Object)) {
+        throw new Error('inheritance from branch with non-object');
+      }
+      // create inherited version of each object and re-aggregate
+      const inheritedTypes = new Map();
+      parent.types.forEach((branchType, key) => {
+        // add attributes to each branch
+        const attributes = new Map();
+        branchType.attributes().forEach(attr => {
+          attributes.set(attr.name(), attr.clone());
+        });
+        attributeNames.forEach(attr => attributes.set(attr.trim('?'), createAttrFromName(attr, buildType(def[attr], scope))));
+        inheritedTypes.set(key, new Obj(Array.from(attributes.values())));
+      });
+      return new Any(inheritedTypes);
+    } else if (parents.every(parent => parent instanceof Obj)) {
+      // simple inheritance
+      const attributes = new Map();
+      parents.forEach(parent => {
+        parent.attributes().forEach(parentAttr => {
+          attributes[parentAttr] = parent[parentAttr];
+        });
+      });
+      attributeNames.forEach(attr => attributes.set(attr.trim('?'), createAttrFromName(attr, buildType(def[attr], scope))));
+      return new Obj(Array.from(attributes.values()));
+    }
+
+    throw new Error('invalid parent type');
+  }
+
+  // no inheritance
+  return new Obj(attributeNames.map(attr => createAttrFromName(attr, buildType(def[attr], scope))));
 }
 
 export default class Squalus {
@@ -238,9 +317,12 @@ export default class Squalus {
     // check names and dependencies
     const dependencies = buildKnownDependencies().concat(parseRoot(root));
     const sorted = toposort(dependencies, d => d.name, d => d.requires);
-    console.log(sorted);
+    // console.log(sorted);
 
-    sorted.forEach((type, name) => registeredTypes.set(name, buildType(type.data)));
+    sorted.forEach((type, name) => {
+      const scope = name.indexOf('.') ? name.substring(0, name.indexOf('.')) : null;
+      registeredTypes.set(name, buildType(type.data, scope));
+    });
     console.log(registeredTypes);
   }
 
@@ -249,7 +331,7 @@ export default class Squalus {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
-      const def = new Definition(test.url, test.method, test.params, test.data);
+      const def = new Definition(test.url, test.method, test.params, test.data ? buildType(test.data) : null);
       ul.appendChild(def.build());
     });
 

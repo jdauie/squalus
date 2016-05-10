@@ -11,6 +11,10 @@ export default class Obj {
     return this._attributes;
   }
 
+  clone() {
+    return new Obj(this._attributes.map(attr => attr.clone()));
+  }
+
   build() {
     this._node = $('table', { _squalusType: this },
       $('tbody',

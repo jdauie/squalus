@@ -25,6 +25,10 @@ export default class Attribute {
     return this._included;
   }
 
+  clone() {
+    return new Attribute(this._name, this._type, this._required);
+  }
+
   build() {
     this._node = $('tr', { _squalusType: this },
       $('th'),
