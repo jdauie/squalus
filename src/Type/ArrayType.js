@@ -1,6 +1,7 @@
 import { default as $ } from './../Tag';
+import BranchType from './BranchType';
 
-export default class Vector {
+export default class ArrayType {
 
   constructor(type) {
     this._type = type;
@@ -14,7 +15,7 @@ export default class Vector {
   }
 
   clone() {
-    return new Vector(this._type.clone());
+    return new ArrayType(this._type.clone());
   }
 
   build() {
@@ -55,6 +56,7 @@ export default class Vector {
       $('th', `[${this._body.children.length}]`),
       $('td', clone.build())
     ));
+    BranchType.initializeSelectionStates(this._body.lastElementChild);
     return clone;
   }
 

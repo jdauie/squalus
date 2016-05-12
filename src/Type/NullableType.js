@@ -1,4 +1,4 @@
-export default class Nullable {
+export default class NullableType {
 
   constructor(type) {
     this._type = type;
@@ -13,7 +13,7 @@ export default class Nullable {
   }
 
   clone() {
-    return new Nullable(this._type.clone());
+    return new NullableType(this._type.clone());
   }
 
   value() {

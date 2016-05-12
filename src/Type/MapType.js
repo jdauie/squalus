@@ -1,6 +1,7 @@
 import { default as $ } from './../Tag';
+import BranchType from './BranchType';
 
-export default class Map {
+export default class MapType {
 
   constructor(key, type, required) {
     this._type = type;
@@ -16,7 +17,7 @@ export default class Map {
   }
 
   clone() {
-    return new Map(this._key.clone(), this._type.clone(), this._required ? this._required.clone() : null);
+    return new MapType(this._key.clone(), this._type.clone(), this._required ? this._required.clone() : null);
   }
 
   build() {
@@ -72,6 +73,7 @@ export default class Map {
         $('th', keyField),
         $('td', clone.build())
       ));
+    BranchType.initializeSelectionStates(this._body.lastElementChild);
     return clone;
   }
 

@@ -1,6 +1,6 @@
 import { default as $ } from './../Tag';
 
-export default class Any {
+export default class BranchType {
 
   constructor(types) {
     this._types = types;
@@ -14,7 +14,7 @@ export default class Any {
   clone() {
     const types = new Map();
     this._types.forEach((type, key) => types.set(key, type.clone()));
-    return new Any(types);
+    return new BranchType(types);
   }
 
   build() {
@@ -54,5 +54,12 @@ export default class Any {
       node = node.nextElementSibling;
       node.classList.toggle('test-hidden', i++ !== event.target.selectedIndex);
     }
+  }
+
+  static initializeSelectionStates(root) {
+    Array.from(root.querySelectorAll('select')).forEach(elem => {
+      const event = new Event('change', { bubbles: true });
+      elem.dispatchEvent(event);
+    });
   }
 }

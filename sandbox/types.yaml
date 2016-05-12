@@ -124,3 +124,4 @@ Test:
     Map1: MapStringString
     Map2: MapStringObject
     Known: ObjectKnownInheritance[]
+    Nested: (string => (int{2,4-9}|bool|string?))?[]?

@@ -1,6 +1,6 @@
 import { default as $ } from './Tag';
-import AnyType from './Type/Any';
-import ScalarType from './Type/Scalar';
+import BranchType from './Type/BranchType';
+import ScalarType from './Type/ScalarType';
 import Result from './Result';
 
 function closestAncestorByTagName(elem, tagName) {
@@ -17,7 +17,7 @@ function closestAncestorByTagName(elem, tagName) {
 function closestAncestorByClassName(elem, className) {
   let e = elem.parentNode;
   while (e) {
-    if (e.classList.contains(className)) {
+    if (e.classList && e.classList.contains(className)) {
       return e;
     }
     e = e.parentNode;
@@ -41,7 +41,7 @@ function convertValueToParam(val, key, query) {
   }
 }
 
-export default class Definition {
+export default class Endpoint {
 
   constructor(url, method, params, type) {
     this._url = url;
@@ -183,6 +183,10 @@ export default class Definition {
 
   build() {
     const item = $('li',
+      $('div', { class: `endpoint-method-${this._method.toLowerCase()}` },
+        $('span', { class: 'endpoint-method' }, this._method),
+        $('span', { class: 'endpoint-path' }, this._url)
+      ),
       $('div', { class: 'endpoint-test' },
         $('div', { class: 'endpoint-test-body' })
       )
@@ -195,7 +199,7 @@ export default class Definition {
 
     let table = this._type ? this._type.build() : $('table');
 
-    if (this._type instanceof ScalarType || this._type instanceof AnyType) {
+    if (this._type instanceof ScalarType || this._type instanceof BranchType) {
       table = $('table',
         $('tbody',
           $('tr',
@@ -232,7 +236,7 @@ export default class Definition {
       );
       this._body.appendChild(container);
 
-      // todo: trigger tab switch
+      // todo: trigger tab switch?
     } else {
       this._body.appendChild(table);
     }
@@ -343,6 +347,7 @@ export default class Definition {
   }
 
   static closest(elem) {
-    return closestAncestorByClassName(elem, 'endpoint-test-body')._squalusDef;
+    const node = closestAncestorByClassName(elem, 'endpoint-test-body');
+    return node ? node._squalusDef : null;
   }
 }

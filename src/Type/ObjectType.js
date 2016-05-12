@@ -1,6 +1,6 @@
 import { default as $ } from './../Tag';
 
-export default class Obj {
+export default class ObjectType {
 
   constructor(attributes) {
     this._attributes = attributes;
@@ -12,7 +12,7 @@ export default class Obj {
   }
 
   clone() {
-    return new Obj(this._attributes.map(attr => attr.clone()));
+    return new ObjectType(this._attributes.map(attr => attr.clone()));
   }
 
   build() {

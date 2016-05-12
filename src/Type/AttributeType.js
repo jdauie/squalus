@@ -1,6 +1,6 @@
 import { default as $ } from './../Tag';
 
-export default class Attribute {
+export default class AttributeType {
 
   constructor(name, type, required) {
     this._name = name;
@@ -26,7 +26,7 @@ export default class Attribute {
   }
 
   clone() {
-    return new Attribute(this._name, this._type, this._required);
+    return new AttributeType(this._name, this._type, this._required);
   }
 
   build() {

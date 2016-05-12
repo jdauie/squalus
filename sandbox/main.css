@@ -101,3 +101,65 @@ th.test-attr-toggle {
 .tab-container .test-json {
   height: 100px;
 }
+
+.endpoint-path {
+  font-weight:bold;
+  font-family:Courier New, monospace;
+}
+.endpoint-path-del {
+  color:#b729d9;
+}
+.endpoint-path-var {
+  color:green;
+}
+.endpoint-prefix {
+  color:#666;
+}
+
+.endpoint-method {
+  font-size:10px;
+  display:inline-block;
+  padding:7px 0 4px;
+  text-align:center;
+  border-radius:2px;
+  width:50px;
+  color:#fff;
+  text-transform: uppercase;
+  margin-right:8px;
+}
+
+.endpoint-method-get > .endpoint-method {
+  background-color:#0f6ab4;
+}
+.endpoint-method-get {
+  background-color:#e7f0f7;
+  border:1px solid #c3d9ec;
+}
+.endpoint-method-post > .endpoint-method {
+  background-color:#10a54a;
+}
+.endpoint-method-post {
+  background-color:#e7f6ec;
+  border:1px solid #c3e8d1;
+}
+.endpoint-method-put > .endpoint-method {
+  background-color:#c5862b;
+}
+.endpoint-method-put {
+  background-color:#f9f2e9;
+  border:1px solid #f0e0ca;
+}
+.endpoint-method-patch > .endpoint-method {
+  background-color:#d38042;
+}
+.endpoint-method-patch {
+  background-color:#fce9e3;
+  border:1px solid #f5d5c3;
+}
+.endpoint-method-delete > .endpoint-method {
+  background-color:#a41e22;
+}
+.endpoint-method-delete {
+  background-color:#f5e8e8;
+  border:1px solid #e8c6c7;
+}
