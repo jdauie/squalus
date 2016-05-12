@@ -1,21 +1,18 @@
 import { default as $ } from './../Tag';
-import NullScalarType from './Scalar/NullScalarType';
-import IntScalarType from './Scalar/IntScalarType';
-import FloatScalarType from './Scalar/FloatScalarType';
-import BoolScalarType from './Scalar/BoolScalarType';
 
-const implementations = {
-  null: NullScalarType,
-  int: IntScalarType,
-  uint: IntScalarType,
-  float: FloatScalarType,
-  string: null,
-  bool: BoolScalarType,
-  date: null,
-  datetime: null,
-  timestamp: null,
-  guid: null,
-};
+const implementations = new Map();
+[
+  'null',
+  'int',
+  'uint',
+  'float',
+  'string',
+  'bool',
+  'date',
+  'datetime',
+  'timestamp',
+  'guid',
+].forEach(type => implementations.set(type, null));
 
 export default class ScalarType {
 
@@ -77,12 +74,19 @@ export default class ScalarType {
     }
   }
 
+  static register(type, implementation) {
+    if (Array.isArray) {
+      type.forEach(t => implementations.set(t, implementation));
+    } else {
+      implementations.set(type, implementation);
+    }
+  }
+
   static create(type, values) {
-    const implementation = implementations[type] || ScalarType;
-    return new implementation(type, values);
+    return new (implementations.get(type) || ScalarType)(type, values);
   }
 
   static getScalarTypes() {
-    return Object.keys(implementations);
+    return Array.from(implementations.keys());
   }
 }
