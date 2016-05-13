@@ -293,8 +293,26 @@ function buildType(def, scope) {
     }
 
     if (tokens[tokens.length - 1] === ')') {
-      // todo: transform
-      return buildType(tokens.slice(0, tokens.indexOf(':')).join(''), scope);
+      const transformStart = tokens.indexOf(':');
+      const transformName = tokens[transformStart + 1];
+      const transformArgs = tokens.slice(transformStart + 3, tokens.length - 1).filter(t => t !== ',');
+
+      const transforms = {
+        map: type => {
+          const branchMap = new Map();
+          type.attributes().forEach(attr =>
+            branchMap.set(attr.name(), new ObjectType([
+              new AttributeType(transformArgs[0], new ScalarType('string', [attr.name()]), true),
+              new AttributeType(transformArgs[1], attr.type().clone(), true),
+            ]))
+          );
+          return new BranchType(branchMap);
+        },
+      };
+      if (!transforms[transformName]) {
+        throw new Error('unsupported transform');
+      }
+      return transforms[transformName](buildType(tokens.slice(0, transformStart).join(''), scope));
     }
 
     const scopedName = scopify(tokens.join(''), scope);
@@ -340,7 +358,7 @@ function buildType(def, scope) {
       const attributes = new Map();
       parents.forEach(parent => {
         parent.attributes().forEach(parentAttr => {
-          attributes[parentAttr] = parent[parentAttr];
+          attributes.set(parentAttr, parentAttr.clone());
         });
       });
       attributeNames.forEach(attr =>

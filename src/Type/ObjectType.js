@@ -12,7 +12,7 @@ export default class ObjectType {
   }
 
   clone() {
-    return new ObjectType(this._attributes.map(attr => attr.clone()));
+    return new this.constructor(this._attributes.map(attr => attr.clone()));
   }
 
   build() {
@@ -38,6 +38,10 @@ export default class ObjectType {
     this._attributes.forEach(attr => {
       attr.populate(data[attr.name()], path, types);
     });
+  }
+
+  validate(value, path, returnOnly) {
+    // todo
   }
 
   clear() {

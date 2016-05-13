@@ -27,7 +27,7 @@ export default class ScalarType {
   }
 
   clone() {
-    return new ScalarType(this._type, this._values);
+    return new this.constructor(this._type, this._values);
   }
 
   supportsValues() {
@@ -62,6 +62,28 @@ export default class ScalarType {
 
   populate(data) {
     this._node.value = data;
+  }
+
+  _validate(value) {
+    return typeof value === 'string';
+  }
+
+  validate(value, path, silent) {
+    if (!this._validate(value, path, silent)) {
+      if (silent) {
+        return false;
+      }
+      throw new Error(`${path} must be of type ${this._type}`);
+    }
+
+    if (this._values && !this._values.includes(value)) {
+      if (silent) {
+        return false;
+      }
+      throw new Error(`${path}: '${value}'} must be in [${this._values.join(', ')}]`);
+    }
+
+    return true;
   }
 
   clear() {

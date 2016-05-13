@@ -11,6 +11,10 @@ export default class BoolScalarType extends ScalarType {
     return $('input', { type: 'checkbox' });
   }
 
+  _validate(value) {
+    return typeof value === 'boolean';
+  }
+
   value() {
     return this._node.checked;
   }

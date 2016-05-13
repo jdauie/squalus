@@ -26,7 +26,7 @@ export default class AttributeType {
   }
 
   clone() {
-    return new AttributeType(this._name, this._type, this._required);
+    return new this.constructor(this._name, this._type, this._required);
   }
 
   build() {
@@ -52,6 +52,10 @@ export default class AttributeType {
     this._type.populate(data, `${path}.${this._name}`, types);
     this._included = true;
     this.update();
+  }
+
+  validate(value, path, returnOnly) {
+    return this._type.validate(value, path, returnOnly);
   }
 
   clear() {

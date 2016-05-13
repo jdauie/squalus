@@ -112,7 +112,9 @@ export default class Endpoint {
         names.prototype.push.apply(names, Array.from(this._params.keys()).filter(p => !names.includes(p)));
       }
 
-      const params = test.appendChild($('div', { class: 'endpoint-test-params' }));
+      const params = test.appendChild($('div', { class: 'endpoint-test-params' },
+        $('div', { class: 'endpoint-test-label' }, 'params')
+      ));
       params.appendChild($('table',
         $('tbody',
           names.map(param => {
@@ -128,17 +130,23 @@ export default class Endpoint {
         )
       ));
       if (this._method === 'PUT') {
-        params.appendChild($('input', { type: 'button', value: 'EDIT', class: 'test-edit' }));
+        test.appendChild($('div', { class: 'endpoint-test-controls' },
+          $('input', { type: 'button', value: 'EDIT', class: 'test-edit' }),
+          $('span', { class: 'endpoint-test-status test-edit-status' })
+        ));
       }
     }
 
     if (this._type) {
-      test.appendChild($('div', { class: 'endpoint-test-body' }, this._type.build()));
+      test.appendChild($('div', { class: 'endpoint-test-body' },
+        $('div', { class: 'endpoint-test-label' }, 'body'),
+        this._type.build())
+      );
     }
 
     test.appendChild($('div', { class: 'endpoint-test-controls' },
       $('input', { type: 'button', value: this._method, class: 'test-submit' }),
-      $('span', { class: 'test-edit-status' })
+      $('span', { class: 'endpoint-test-status' })
     ));
 
     return this._node;
@@ -168,7 +176,7 @@ export default class Endpoint {
 
   edit() {
     const url = this.getPopulatedUrl();
-    const status = this._body.querySelector('.test-edit-status');
+    const status = this._node.querySelector('.test-edit-status');
 
     status.textContent = '';
 
@@ -177,30 +185,33 @@ export default class Endpoint {
 
     fetch(url).then(res => {
       if (!res.ok) {
-        //
+        status.textContent = 'something went wrong';
+        this.unlock();
+        return;
       }
 
-      let data = res.json();
+      res.json().then(json => {
+        let data = json;
+        // todo: this is going to require the actual validation implementation to handle branching
 
-      // todo: this is going to require the actual validation implementation to handle branching
-
-      // if data is array, edit the first one (for convenience, to support shared id/search path)
-      if (Array.isArray(data)) {
-        if (data.length && this._params && this._params.size === 1) {
-          status.textContent = `Loaded first record (${data.length} total)`;
-          data = data[0];
-          this.updateSingleParam(data);
-        } else {
-          data = null;
+        // if data is array, edit the first one (for convenience, to support shared id/search path)
+        if (Array.isArray(data)) {
+          if (data.length && this._params && this._params.size === 1) {
+            status.textContent = `Loaded first record (${data.length} total)`;
+            data = data[0];
+            this.updateSingleParam(data);
+          } else {
+            data = null;
+          }
         }
-      }
-      if (data) {
-        this.populate(data);
-      } else {
-        status.textContent = 'No match for pattern';
-      }
+        if (data) {
+          this.populate(data);
+        } else {
+          status.textContent = 'No match for pattern';
+        }
 
-      this.unlock();
+        this.unlock();
+      });
     }).catch(error => {
       status.textContent = error.message;
       this.unlock();

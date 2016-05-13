@@ -13,7 +13,7 @@ export default class NullableType {
   }
 
   clone() {
-    return new NullableType(this._type.clone());
+    return new this.constructor(this._type.clone());
   }
 
   value() {
@@ -22,6 +22,10 @@ export default class NullableType {
       val = null;
     }
     return val;
+  }
+
+  validate(value, path, returnOnly) {
+    return (value === null) || this._type.validate(value, path, returnOnly);
   }
 
   populate(data, path, types) {

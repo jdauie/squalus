@@ -13,7 +13,12 @@ export default class IntScalarType extends ScalarType {
     }
 
     const parsed = values.reduce((previous, current) => {
-      if (current.indexOf('-') !== -1) {
+      if (typeof current === 'number') {
+        if ((current | 0) !== current) {
+          throw new Error('not an int');
+        }
+        previous.push(current);
+      } else if (current.indexOf('-') !== -1) {
         const parts = current.split('-');
         const start = parseInt(parts[0], 10);
         const end = parseInt(parts[1], 10);
@@ -47,6 +52,10 @@ export default class IntScalarType extends ScalarType {
     this._validator = (value) => fixed.includes(value) || ranges.some(r => r[0] <= value && value >= r[1]);
 
     return null;
+  }
+
+  _validate(value) {
+    return typeof value === 'number' && (value | 0) === value;
   }
 
   value() {

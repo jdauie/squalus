@@ -15,7 +15,7 @@ export default class ArrayType {
   }
 
   clone() {
-    return new ArrayType(this._type.clone());
+    return new this.constructor(this._type.clone());
   }
 
   build() {
@@ -37,6 +37,16 @@ export default class ArrayType {
       const row = this.add();
       row.populate(data[i], `${path}[${i}]`, types);
     }
+  }
+
+  validate(value, path, returnOnly) {
+    if (Array.isArray(value)) {
+      return value.every((item, i) => item.validate(value, `${path}[${i}]`, returnOnly));
+    }
+    if (returnOnly) {
+      return false;
+    }
+    throw new Error(`${path} must be an array`);
   }
 
   value() {
@@ -63,6 +73,10 @@ export default class ArrayType {
   remove(i) {
     this._rows.splice(i, 1);
     this._body.children[i].remove();
+
+    for (let j = i; j < this._body.children.length; j++) {
+      this._body.children[j].children[1].textContent = `[${j}]`;
+    }
   }
 
   static onClickAdd(event) {

@@ -32,7 +32,7 @@ ul {
 .endpoint-test-body{
   border:1px solid #ccc;
   border-radius:4px;
-  padding:3px 4px;
+  padding:5px 4px 3px 4px;
   margin: 4px 4px;
 }
 .endpoint-test-params {
@@ -52,7 +52,6 @@ ul {
   padding-right:4px;
   padding-top:3px;
 }
-.endpoint-test-params input[type=button],
 .endpoint-test-controls input[type=button]{
   width:100px;
 }
@@ -75,6 +74,11 @@ th.test-attr-toggle {
 }
 .test-attr-included {
   color:#000;
+}
+
+.endpoint-test-status {
+  margin-left:10px;
+  color:#f00;
 }
 
 .test-hidden {
@@ -111,9 +115,29 @@ th.test-attr-toggle {
   border-radius:2px;
 }
 
-.endpoint-method-get .endpoint-header {
+.endpoint-test-label {
+  font-size: 9px;
+  display: inline;
+  background-color: #eee;
+  padding: 2px 4px;
+  position: relative;
+  top: -6px;
+  left: -4px;
+  border-color:#ddd;
+  border-width:0 1px 1px 0;
+  border-style: solid;
+  border-bottom-right-radius: 4px;
+  text-transform: uppercase;
+}
+
+.endpoint-header {
+  border: 1px solid #000;
+}
+
+.endpoint-method-get .endpoint-header,
+.endpoint-method-get .endpoint-test-body .endpoint-test-label {
   background-color:#e7f0f7;
-  border:1px solid #c3d9ec;
+  border-color:#c3d9ec;
 }
 .endpoint-method-get .endpoint-method {
   background-color:#0f6ab4;
@@ -122,9 +146,10 @@ th.test-attr-toggle {
   border-left:4px solid #c3d9ec;
 }
 
-.endpoint-method-post .endpoint-header {
+.endpoint-method-post .endpoint-header,
+.endpoint-method-post .endpoint-test-body .endpoint-test-label {
   background-color:#e7f6ec;
-  border:1px solid #c3e8d1;
+  border-color:#c3e8d1;
 }
 .endpoint-method-post .endpoint-method {
   background-color:#10a54a;
@@ -133,9 +158,10 @@ th.test-attr-toggle {
   border-left:4px solid #c3e8d1;
 }
 
-.endpoint-method-put .endpoint-header {
+.endpoint-method-put .endpoint-header,
+.endpoint-method-put .endpoint-test-body .endpoint-test-label {
   background-color:#f9f2e9;
-  border:1px solid #f0e0ca;
+  border-color:#f0e0ca;
 }
 .endpoint-method-put .endpoint-method {
   background-color:#c5862b;
@@ -144,9 +170,10 @@ th.test-attr-toggle {
   border-left:4px solid #f0e0ca;
 }
 
-.endpoint-method-patch .endpoint-header {
+.endpoint-method-patch .endpoint-header,
+.endpoint-method-patch .endpoint-test-body .endpoint-test-label {
   background-color:#fce9e3;
-  border:1px solid #f5d5c3;
+  border-color:#f5d5c3;
 }
 .endpoint-method-patch .endpoint-method {
   background-color:#d38042;
@@ -155,9 +182,10 @@ th.test-attr-toggle {
   border-left:4px solid #f5d5c3;
 }
 
-.endpoint-method-delete .endpoint-header {
+.endpoint-method-delete .endpoint-header,
+.endpoint-method-delete .endpoint-test-body .endpoint-test-label {
   background-color:#f5e8e8;
-  border:1px solid #e8c6c7;
+  border-color:#e8c6c7;
 }
 .endpoint-method-delete .endpoint-method {
   background-color:#a41e22;

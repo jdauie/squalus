@@ -14,7 +14,7 @@ export default class BranchType {
   clone() {
     const types = new Map();
     this._types.forEach((type, key) => types.set(key, type.clone()));
-    return new BranchType(types);
+    return new this.constructor(types);
   }
 
   build() {
@@ -41,6 +41,10 @@ export default class BranchType {
     // todo: trigger change event
 
     type.populate(data);
+  }
+
+  validate(value, path, returnOnly) {
+    // todo
   }
 
   clear() {

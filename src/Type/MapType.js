@@ -17,7 +17,7 @@ export default class MapType {
   }
 
   clone() {
-    return new MapType(this._key.clone(), this._type.clone(), this._required ? this._required.clone() : null);
+    return new this.constructor(this._key.clone(), this._type.clone(), this._required ? this._required.clone() : null);
   }
 
   build() {
@@ -45,6 +45,10 @@ export default class MapType {
       this._body.children[i].firstElementChild.textContent = key;
       row.populate(data[key], `${path}[${key}]`, types);
     });
+  }
+
+  validate(value, path, returnOnly) {
+    // todo
   }
 
   value() {
