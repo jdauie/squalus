@@ -26,7 +26,7 @@ ul {
   margin: 0 0 20px 0;
 }
 .endpoint-test {
-  margin: 0 0 0 51px;
+  margin: 0 0 0 44px;
 }
 .endpoint-test-params,
 .endpoint-test-body{
@@ -41,7 +41,7 @@ ul {
 .endpoint-test-body {
 }
 .endpoint-test-controls {
-  margin:4px 0 0 0;
+  margin:4px 0 0 4px;
   padding:0 0 0 4px;
 }
 

@@ -106,11 +106,20 @@ export default class Endpoint {
     const test = this._node.appendChild($('div', { class: 'endpoint-test' }));
 
     if (this._params) {
+      const names = this._url.match(/{[^}\s]+}/g).map(m => m.substr(1, m.length - 2));
+
+      if (this._params.size > names.length) {
+        names.prototype.push.apply(names, Array.from(this._params.keys()).filter(p => !names.includes(p)));
+      }
+
       const params = test.appendChild($('div', { class: 'endpoint-test-params' }));
       params.appendChild($('table',
         $('tbody',
-          Array.from(this._params.keys()).map(param => {
+          names.map(param => {
             const type = this._params.get(param);
+            if (type === undefined) {
+              throw new Error('required param type not specified');
+            }
             return $('tr', { class: 'test-param', 'data-name': param, _squalusType: type },
               $('th', param),
               $('td', type.build())
