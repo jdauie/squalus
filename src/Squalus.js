@@ -9,10 +9,10 @@ import ScalarType from './Type/ScalarType';
 import NullableType from './Type/NullableType';
 import MapType from './Type/MapType';
 
-// import BoolScalarType from './Type/Scalar/BoolScalarType';
-// import FloatScalarType from './Type/Scalar/FloatScalarType';
-// import IntScalarType from './Type/Scalar/IntScalarType';
-// import NullScalarType from './Type/Scalar/NullScalarType';
+import BoolScalarType from './Type/Scalar/BoolScalarType';
+import FloatScalarType from './Type/Scalar/FloatScalarType';
+import IntScalarType from './Type/Scalar/IntScalarType';
+import NullScalarType from './Type/Scalar/NullScalarType';
 
 const registeredTypes = new Map();
 
@@ -153,7 +153,7 @@ function parseTokensFromType(type, dependenciesOnly) {
 }
 
 function buildKnownDependencies() {
-  return BranchType.getScalarTypes().map(t => ({
+  return ScalarType.getScalarTypes().map(t => ({
     name: t,
     data: t,
   }));
@@ -182,7 +182,7 @@ function scopify(iter, scope) {
   }
   const result = Array.from(source, item => ((
     item.indexOf('{') === -1 && item.indexOf('[') === -1 && item.indexOf('|') === -1 &&
-    item.indexOf('.') === -1 && !BranchType.getScalarTypes().includes(item))
+    item.indexOf('.') === -1 && !ScalarType.getScalarTypes().includes(item))
       ? `${scope}.${item}`
       : item)
   );
@@ -360,10 +360,10 @@ export default class Squalus {
 
   static buildTypes(root) {
     // register scalar types to avoid circular dependency
-    // ScalarType.register('null', NullScalarType);
-    // ScalarType.register(['int', 'uint'], IntScalarType);
-    // ScalarType.register('float', FloatScalarType);
-    // ScalarType.register('bool', BoolScalarType);
+    ScalarType.register('null', NullScalarType);
+    ScalarType.register(['int', 'uint'], IntScalarType);
+    ScalarType.register('float', FloatScalarType);
+    ScalarType.register('bool', BoolScalarType);
 
     // check names and dependencies
     const dependencies = buildKnownDependencies().concat(parseRoot(root));
@@ -380,8 +380,14 @@ export default class Squalus {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
-      const def = new Endpoint(test.url, test.method, test.params, test.data ? buildType(test.data) : null);
-      ul.appendChild(def.build());
+      const params = new Map();
+      if (test.params) {
+        Object.keys(test.params).forEach(key => {
+          params.set(key, buildType(test.params[key]));
+        });
+      }
+      const def = new Endpoint(test.url, test.method, params, test.data ? buildType(test.data) : null);
+      ul.appendChild($('li', def.build()));
     });
 
     const events = {
@@ -389,7 +395,6 @@ export default class Squalus {
         'select.test-option': BranchType.onChange,
       },
       click: {
-        '.tab-container > ul > li': Endpoint.onTabSwitch,
         '.test-row-add': ArrayType.onClickAdd,
         '.test-row-remove': ArrayType.onClickRemove,
         '.test-attr-toggle': AttributeType.onClickToggle,

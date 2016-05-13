@@ -8,7 +8,7 @@ function appendNode(element, content) {
     element.appendChild(content);
   } else {
     const div = document.createElement('div');
-    div.innerHTML = content || '';
+    div.innerHTML = (content === undefined) ? '' : content;
 
     while (div.firstChild) {
       element.appendChild(div.firstChild);

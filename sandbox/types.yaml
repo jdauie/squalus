@@ -6,7 +6,7 @@ Reminder:
 
   Weekly:
     IntervalUnit: string{weekly}
-    IntervalOffset: uint{0-7}
+    IntervalOffset: uint{0-6}
 
   Monthly:
     IntervalUnit: string{monthly}

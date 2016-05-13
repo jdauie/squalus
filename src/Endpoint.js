@@ -1,18 +1,5 @@
 import { default as $ } from './Tag';
-import BranchType from './Type/BranchType';
-import ScalarType from './Type/ScalarType';
 import Result from './Result';
-
-function closestAncestorByTagName(elem, tagName) {
-  let e = elem.parentNode;
-  while (e) {
-    if (e.tagName.toLowerCase() === tagName) {
-      return e;
-    }
-    e = e.parentNode;
-  }
-  return null;
-}
 
 function closestAncestorByClassName(elem, className) {
   let e = elem.parentNode;
@@ -46,30 +33,16 @@ export default class Endpoint {
   constructor(url, method, params, type) {
     this._url = url;
     this._method = method;
-    this._params = params;
+    this._params = (params && params.size) ? params : null;
     this._type = type;
 
-    this._body = null;
-  }
-
-  syncTabParams() {
-    const divs = this._body.querySelector('.tab-container > div');
-    if (divs.length) {
-      let src = divs[0].querySelectorAll('.test-param');
-      let dst = divs[1].querySelectorAll('.test-param');
-      if (!divs[0].classList.contains('current')) {
-        [src, dst] = [dst, src];
-      }
-      [...src].forEach((param, i) => {
-        dst[i].value = param.value;
-      });
-    }
+    this._node = null;
   }
 
   updateSingleParam(data) {
     if (this._params) {
       if (data.Id) {
-        this._body.querySelector('.test-param')._squalusType.populate(data.Id);
+        this._node.querySelector('.test-param')._squalusType.populate(data.Id);
       }
     }
   }
@@ -78,26 +51,15 @@ export default class Endpoint {
     if (!this._type) {
       return null;
     }
-
-    // use the json tab (instead of the form) if it is selected
-    if (this._json && closestAncestorByTagName(this._json, 'div').classList.contains('current')) {
-      let val = this._json.value;
-      if (val === '') {
-        val = null;
-      }
-      return JSON.parse(val);
-    }
     return this._type.value();
   }
 
   populate(data, types) {
     this._type.populate(data, 'body', types);
-    this.switchTab(0);
   }
 
   clear() {
     this._type.clear();
-    this._json.value = '';
   }
 
   lock() {
@@ -113,13 +75,10 @@ export default class Endpoint {
     const query = new Map();
     let url = this._url;
     if (this._params) {
-      const params = Object.keys(this._params);
-      const tab = this._body.querySelector('.tab-container .current') || this._body;
-      const testParams = tab.querySelectorAll('.test-param');
-      for (let i = 0; i < testParams.length; i++) {
-        const key = params[i];
+      Array.from(this._node.querySelectorAll('.test-param')).forEach(param => {
+        const key = param.dataset.name;
         const keyPlaceholder = `{${key}}`;
-        const val = testParams[i]._squalusType.value();
+        const val = param._squalusType.value();
         if (url.indexOf(keyPlaceholder) === -1) {
           if (val !== null && val !== '') {
             convertValueToParam(val, key, query);
@@ -127,7 +86,7 @@ export default class Endpoint {
         } else {
           url = url.replace(keyPlaceholder, encodeURI(val));
         }
-      }
+      });
     }
 
     url = new URL(url, window.location.href);
@@ -136,131 +95,44 @@ export default class Endpoint {
     return url;
   }
 
-  buildParamsNode() {
-    if (!this._params) {
-      return null;
-    }
-    return $('table',
-      $('tbody',
-        this._params.keys().map(param => {
-          // this has to happen for each tab
-          const type = this._params.get(param);
-          return $('tr', { class: 'test-param', _squalusType: type },
-            $('th', param),
-            $('td', type.build())
-          );
-        })
-      )
-    );
-  }
-
-  appendTableControls(table) {
-    if (this._params) {
-      table.appendChild(
-        $('thead',
-          $('tr',
-            $('th'),
-            $('th', (this._method === 'PUT')
-              ? $('input', { type: 'button', value: 'GET', class: 'test-edit' })
-              : document.createTextNode('[params]')
-            ),
-            $('td', this.buildParamsNode())
-          )
-        )
-      );
-    }
-
-    table.appendChild(
-      $('tfoot',
-        $('tr',
-          $('th'),
-          $('th', $('input', { type: 'button', value: this._method, class: 'test-submit' })),
-          $('td', $('span', { class: 'test-edit-status' }))
-        )
-      )
-    );
-  }
-
   build() {
-    const item = $('li',
-      $('div', { class: `endpoint-method-${this._method.toLowerCase()}` },
+    this._node = $('div', { class: `endpoint endpoint-method-${this._method.toLowerCase()}`, _squalusDef: this },
+      $('div', { class: 'endpoint-header' },
         $('span', { class: 'endpoint-method' }, this._method),
-        $('span', { class: 'endpoint-path' }, this._url)
-      ),
-      $('div', { class: 'endpoint-test' },
-        $('div', { class: 'endpoint-test-body' })
+        $('span', { class: 'endpoint-url' }, this._url)
       )
     );
-    this._body = item.querySelector('.endpoint-test-body');
-    this._json = null;
 
-    this._body.innerHTML = '';
-    this._body._squalusDef = this;
+    const test = this._node.appendChild($('div', { class: 'endpoint-test' }));
 
-    let table = this._type ? this._type.build() : $('table');
-
-    if (this._type instanceof ScalarType || this._type instanceof BranchType) {
-      table = $('table',
+    if (this._params) {
+      const params = test.appendChild($('div', { class: 'endpoint-test-params' }));
+      params.appendChild($('table',
         $('tbody',
-          $('tr',
-            $('th', 'body'),
-            $('td', table)
-          )
+          Array.from(this._params.keys()).map(param => {
+            const type = this._params.get(param);
+            return $('tr', { class: 'test-param', 'data-name': param, _squalusType: type },
+              $('th', param),
+              $('td', type.build())
+            );
+          })
         )
-      );
-    }
-
-    this.appendTableControls(table);
-
-    // check for xml, etc.
-    if (this._type && (!(this._type instanceof ScalarType) || !this._type.contentType())) {
-      const json = $('table',
-        $('tbody',
-          $('tr',
-            $('th', 'JSON'),
-            $('td', $('textarea', { class: 'test-json' }))
-          )
-        )
-      );
-
-      this.appendTableControls(json);
-
-      // tabs
-      const container = $('div', { class: 'tab-container' },
-        $('ul',
-          $('li', { class: 'current' }, 'Editor'),
-          $('li', 'JSON')
-        ),
-        $('div', { class: 'current' }, table),
-        $('div', json)
-      );
-      this._body.appendChild(container);
-
-      // todo: trigger tab switch?
-    } else {
-      this._body.appendChild(table);
-    }
-
-    this._json = this._body.querySelector('.test-json');
-
-    return item;
-  }
-
-  switchTab(index) {
-    const divs = this._body.querySelectorAll('.tab-container > div');
-    const lis = this._body.querySelectorAll('.tab-container > ul > li');
-
-    for (let i = 0; i < divs.length; i++) {
-      divs[i].classList.toggle('current', i === index);
-      lis[i].classList.toggle('current', i === index);
-    }
-
-    if (this._json) {
-      const val = this._type.value();
-      if (val !== null) {
-        this._json.value = JSON.stringify(val, null, 2);
+      ));
+      if (this._method === 'PUT') {
+        params.appendChild($('input', { type: 'button', value: 'EDIT', class: 'test-edit' }));
       }
     }
+
+    if (this._type) {
+      test.appendChild($('div', { class: 'endpoint-test-body' }, this._type.build()));
+    }
+
+    test.appendChild($('div', { class: 'endpoint-test-controls' },
+      $('input', { type: 'button', value: this._method, class: 'test-submit' }),
+      $('span', { class: 'test-edit-status' })
+    ));
+
+    return this._node;
   }
 
   submit() {
@@ -293,7 +165,6 @@ export default class Endpoint {
 
     this.clear();
     this.lock();
-    this.syncTabParams();
 
     fetch(url).then(res => {
       if (!res.ok) {
@@ -306,7 +177,7 @@ export default class Endpoint {
 
       // if data is array, edit the first one (for convenience, to support shared id/search path)
       if (Array.isArray(data)) {
-        if (data.length && (this._params && Object.keys(this._params).length === 1)) {
+        if (data.length && this._params && this._params.size === 1) {
           status.textContent = `Loaded first record (${data.length} total)`;
           data = data[0];
           this.updateSingleParam(data);
@@ -342,12 +213,8 @@ export default class Endpoint {
     (def || this.closest(event.target)).edit();
   }
 
-  static onTabSwitch(event, def) {
-    (def || this.closest(event.target)).switchTab(event.target.previousElementSibling ? 1 : 0);
-  }
-
   static closest(elem) {
-    const node = closestAncestorByClassName(elem, 'endpoint-test-body');
+    const node = closestAncestorByClassName(elem, 'endpoint');
     return node ? node._squalusDef : null;
   }
 }

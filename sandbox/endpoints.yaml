@@ -5,6 +5,8 @@
 
 - url: "api/reminders/{id}"
   method: PUT
+  params:
+    id: int
   data: Reminder.Update
 
 - url: "api/reminders/{id}"

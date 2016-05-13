@@ -75,7 +75,7 @@ export default class ScalarType {
   }
 
   static register(type, implementation) {
-    if (Array.isArray) {
+    if (Array.isArray(type)) {
       type.forEach(t => implementations.set(t, implementation));
     } else {
       implementations.set(type, implementation);

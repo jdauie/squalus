@@ -1,7 +1,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial;
+  font-family: Arial, serif;
   font-size:12px;
 }
 
@@ -17,20 +17,32 @@ ul {
   padding:0;
 }
 
-#api {
-  margin:0 10px;
+#api-root {
 }
 .api-tests {
-  margin-left:10px;
+  margin:10px;
+}
+.endpoint {
+  margin: 0 0 20px 0;
 }
 .endpoint-test {
-  margin:0 0 4px 0;
+  margin: 0 0 0 51px;
+}
+.endpoint-test-params,
+.endpoint-test-body{
+  border:1px solid #ccc;
+  border-radius:4px;
+  padding:3px 4px;
+  margin: 4px 4px;
+}
+.endpoint-test-params {
+  border-left: 4px solid #ddd;
 }
 .endpoint-test-body {
-  margin:10px 0 10px 20px;
-  padding:2px 4px;
-  background-color:#eee;
-  border:1px solid #ccc;
+}
+.endpoint-test-controls {
+  margin:4px 0 0 0;
+  padding:0 0 0 4px;
 }
 
 .endpoint-test-body th {
@@ -39,11 +51,10 @@ ul {
   font-weight:normal;
   padding-right:4px;
   padding-top:3px;
-  text-shadow: 1px 1px 0 #ccc;
 }
-.endpoint-test-body thead input[type=button],
-.endpoint-test-body tfoot input[type=button]{
-  width:100%;
+.endpoint-test-params input[type=button],
+.endpoint-test-controls input[type=button]{
+  width:100px;
 }
 .endpoint-test-body table {
   border-collapse:collapse;
@@ -70,49 +81,17 @@ th.test-attr-toggle {
   display:none;
 }
 
-.tab-container {
-  margin: 0 auto;
-}
-.tab-container > ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  background:#ddd;
-  border-bottom:1px solid #aaa;
-}
-.tab-container > ul > li {
-  background: #ccc;
-  color: #222;
-  display: inline-block;
-  padding: 6px 8px;
-  cursor: pointer;
-}
-.tab-container > ul > li.current {
-  background: #aaa;
-}
-.tab-container > div {
-  display: none;
-  background: #ededed;
-}
-.tab-container > div.current {
-  display: inherit;
-}
-
-.tab-container .test-json {
-  height: 100px;
-}
-
-.endpoint-path {
+.endpoint-url {
   font-weight:bold;
   font-family:Courier New, monospace;
 }
-.endpoint-path-del {
+.endpoint-url-del {
   color:#b729d9;
 }
-.endpoint-path-var {
+.endpoint-url-var {
   color:green;
 }
-.endpoint-prefix {
+.endpoint-url-prefix {
   color:#666;
 }
 
@@ -128,38 +107,61 @@ th.test-attr-toggle {
   margin-right:8px;
 }
 
-.endpoint-method-get > .endpoint-method {
-  background-color:#0f6ab4;
+.endpoint-header {
+  border-radius:2px;
 }
-.endpoint-method-get {
+
+.endpoint-method-get .endpoint-header {
   background-color:#e7f0f7;
   border:1px solid #c3d9ec;
 }
-.endpoint-method-post > .endpoint-method {
-  background-color:#10a54a;
+.endpoint-method-get .endpoint-method {
+  background-color:#0f6ab4;
 }
-.endpoint-method-post {
+.endpoint-method-get .endpoint-test-body {
+  border-left:4px solid #c3d9ec;
+}
+
+.endpoint-method-post .endpoint-header {
   background-color:#e7f6ec;
   border:1px solid #c3e8d1;
 }
-.endpoint-method-put > .endpoint-method {
-  background-color:#c5862b;
+.endpoint-method-post .endpoint-method {
+  background-color:#10a54a;
 }
-.endpoint-method-put {
+.endpoint-method-post .endpoint-test-body {
+  border-left:4px solid #c3e8d1;
+}
+
+.endpoint-method-put .endpoint-header {
   background-color:#f9f2e9;
   border:1px solid #f0e0ca;
 }
-.endpoint-method-patch > .endpoint-method {
-  background-color:#d38042;
+.endpoint-method-put .endpoint-method {
+  background-color:#c5862b;
 }
-.endpoint-method-patch {
+.endpoint-method-put .endpoint-test-body {
+  border-left:4px solid #f0e0ca;
+}
+
+.endpoint-method-patch .endpoint-header {
   background-color:#fce9e3;
   border:1px solid #f5d5c3;
 }
-.endpoint-method-delete > .endpoint-method {
-  background-color:#a41e22;
+.endpoint-method-patch .endpoint-method {
+  background-color:#d38042;
 }
-.endpoint-method-delete {
+.endpoint-method-patch .endpoint-test-body {
+  border-left:4px solid #f5d5c3;
+}
+
+.endpoint-method-delete .endpoint-header {
   background-color:#f5e8e8;
   border:1px solid #e8c6c7;
+}
+.endpoint-method-delete .endpoint-method {
+  background-color:#a41e22;
+}
+.endpoint-method-delete .endpoint-test-body {
+  border-left:4px solid #e8c6c7;
 }
