@@ -5,6 +5,10 @@ export default class BranchType {
   constructor(types) {
     this._types = types;
     this._node = null;
+
+    if (types.size < 2) {
+      throw new Error('degenerate branch type');
+    }
   }
 
   get types() {
@@ -32,19 +36,33 @@ export default class BranchType {
   }
 
   populate(data) {
-    // todo: validate data to determine branch
-    const type = null;
+    // validate data to determine branch
+    const types = Array.from(this._types.values());
+    const i = types.findIndex(type =>
+      type.validate(data, '', true)
+    );
+
+    if (i === -1) {
+      throw new Error('branch validation failed');
+    }
 
     const select = this._node.firstElementChild;
-    select.value = type.name();
+    select.selectedIndex = i;
 
-    // todo: trigger change event
+    const event = new Event('change', { bubbles: true });
+    select.dispatchEvent(event);
 
-    type.populate(data);
+    types[i].populate(data);
   }
 
   validate(value, path, returnOnly) {
-    // todo
+    if (!this._types.some(type => type.validate(value, path, returnOnly))) {
+      if (returnOnly) {
+        return false;
+      }
+      throw new Error(`${path} does not match any candidate`);
+    }
+    return true;
   }
 
   clear() {

@@ -217,7 +217,7 @@ function parseRoot(root) {
 }
 
 function createAttrFromName(name, type) {
-  return new AttributeType(name.trim('?'), type, !name.endsWith('?'));
+  return new AttributeType(name.trim('?'), type.clone(), !name.endsWith('?'));
 }
 
 function stripOuterParens(array) {
@@ -302,7 +302,7 @@ function buildType(def, scope) {
           const branchMap = new Map();
           type.attributes().forEach(attr =>
             branchMap.set(attr.name(), new ObjectType([
-              new AttributeType(transformArgs[0], new ScalarType('string', [attr.name()]), true),
+              new AttributeType(transformArgs[0], ScalarType.create('string', [attr.name()]), true),
               new AttributeType(transformArgs[1], attr.type().clone(), true),
             ]))
           );

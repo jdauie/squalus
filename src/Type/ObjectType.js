@@ -41,7 +41,34 @@ export default class ObjectType {
   }
 
   validate(value, path, returnOnly) {
-    // todo
+    // todo: filter/warn on unrecognized attributes
+
+    if (typeof value !== 'object') {
+      if (returnOnly) {
+        return false;
+      }
+      throw new Error(`${path} must be an object`);
+    }
+
+    for (let i = 0; i < this._attributes.length; i++) {
+      const attr = this._attributes[i];
+      const key = attr.name();
+
+      if (value[key] === undefined) {
+        if (attr.required()) {
+          if (returnOnly) {
+            return false;
+          }
+          throw new Error(`${path}.${key} is required`);
+        }
+      }
+
+      if (!attr.validate(value[key], `${path}.${key}`, returnOnly)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   clear() {

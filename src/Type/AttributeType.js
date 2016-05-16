@@ -26,7 +26,7 @@ export default class AttributeType {
   }
 
   clone() {
-    return new this.constructor(this._name, this._type, this._required);
+    return new this.constructor(this._name, this._type.clone(), this._required);
   }
 
   build() {

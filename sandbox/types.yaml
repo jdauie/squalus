@@ -20,7 +20,7 @@ Reminder:
 
   Get:
     ^: Create
-    Id: guid
+    Id: uint
 
 #xml: >
 #  content-type(text/xml,application/xml)

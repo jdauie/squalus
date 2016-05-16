@@ -40,13 +40,14 @@ export default class ArrayType {
   }
 
   validate(value, path, returnOnly) {
-    if (Array.isArray(value)) {
-      return value.every((item, i) => item.validate(value, `${path}[${i}]`, returnOnly));
+    if (!Array.isArray(value)) {
+      if (returnOnly) {
+        return false;
+      }
+      throw new Error(`${path} must be an array`);
     }
-    if (returnOnly) {
-      return false;
-    }
-    throw new Error(`${path} must be an array`);
+
+    return value.every((item, i) => item.validate(value, `${path}[${i}]`, returnOnly));
   }
 
   value() {

@@ -48,13 +48,39 @@ export default class MapType {
   }
 
   validate(value, path, returnOnly) {
-    // todo
+    if (typeof value !== 'object') {
+      if (returnOnly) {
+        return false;
+      }
+      throw new Error(`${path} must be an object`);
+    }
+
+    const keys = Object.keys(value);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+
+      if (!this._key.validate(key, `${path}[${key}]*`, returnOnly)) {
+        return false;
+      }
+
+      if (!this._type.validate(value[key], `${path}[${key}]`, returnOnly)) {
+        return false;
+      }
+    }
+
+    if (this._required) {
+      if (!this._type.validate(value, path, returnOnly)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   value() {
     const obj = {};
     this._rows.forEach((row, i) => {
-      const key = this._body.children[i].children[1].children.firstElementChild.textContent;
+      const key = this._body.children[i].children[1].firstElementChild.value;
       obj[key] = row.value();
     });
     return obj;
