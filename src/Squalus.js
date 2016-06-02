@@ -14,6 +14,11 @@ import FloatScalarType from './Type/Scalar/FloatScalarType';
 import IntScalarType from './Type/Scalar/IntScalarType';
 import NullScalarType from './Type/Scalar/NullScalarType';
 
+ScalarType.register('null', NullScalarType);
+ScalarType.register(['int', 'uint'], IntScalarType);
+ScalarType.register('float', FloatScalarType);
+ScalarType.register('bool', BoolScalarType);
+
 const registeredTypes = new Map();
 
 function toposort(elements, getName, getRequires) {
@@ -377,12 +382,6 @@ function buildType(def, scope) {
 export default class Squalus {
 
   static buildTypes(root) {
-    // register scalar types to avoid circular dependency
-    ScalarType.register('null', NullScalarType);
-    ScalarType.register(['int', 'uint'], IntScalarType);
-    ScalarType.register('float', FloatScalarType);
-    ScalarType.register('bool', BoolScalarType);
-
     // check names and dependencies
     const dependencies = buildKnownDependencies().concat(parseRoot(root));
     const sorted = toposort(dependencies, d => d.name, d => d.requires);

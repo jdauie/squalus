@@ -2,6 +2,12 @@ import Squalus from './Squalus';
 import docReady from 'es6-docready';
 import yaml from 'js-yaml';
 
+import AllTestsCollection from '../sandbox/tests/All';
+
+console.log(AllTestsCollection);
+
+AllTestsCollection.execute();
+
 docReady(() => {
   Promise.all([
     '/sandbox/types.yaml',
