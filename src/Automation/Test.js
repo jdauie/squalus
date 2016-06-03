@@ -15,7 +15,12 @@ class Test {
     if (!this._promise) {
       this._promise = new Promise((resolve, reject) => {
         console.log(this._name);
-        resolve();
+
+        fetch(this._url).then(res => {
+          resolve();
+        }).catch(error => {
+          reject(error);
+        });
       });
     }
     return this._promise;

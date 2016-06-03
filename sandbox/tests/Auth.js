@@ -1,9 +1,9 @@
 import group from '../../src/Automation/TestGroup';
 import test from '../../src/Automation/Test';
 
-export default group('group0')
+export default group('auth-group')
   .tests([
-    test('test1')
+    test('auth-test-1')
       .post('/login')
       .data('')
       .is(402)

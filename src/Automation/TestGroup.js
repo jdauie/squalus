@@ -41,19 +41,23 @@ class TestGroup {
             reject(reason);
           });
         } else {
-          this._tests.reduce((previous, current) => previous.then(() => {
-            current.execute();
-          }, reason => {
+          const tests = this._tests.slice().reverse();
+
+          const onReject = reason => {
             // previous test failed in this group?
             console.log(reason);
             reject(reason);
-          }), when).then(() => {
-            resolve();
-          }, reason => {
-            // last test in the group failed?
-            console.log(reason);
-            reject(reason);
-          });
+          };
+
+          const onResolve = () => {
+            if (tests.length) {
+              tests.pop().execute().then(onResolve, onReject);
+            } else {
+              resolve();
+            }
+          };
+
+          when.then(onResolve, onReject);
         }
       });
     }

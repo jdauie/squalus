@@ -2,10 +2,10 @@ import group from '../../src/Automation/TestGroup';
 import test from '../../src/Automation/Test';
 import Auth from './Auth';
 
-export default group('group1')
+export default group('reminders-group')
   .requires(Auth)
   .tests([
-    test('test1')
+    test('reminders-test-1')
       .post('/reminders')
       .data('')
       .is('')
