@@ -13,7 +13,11 @@ class TestCollection {
 
   execute() {
     const root = Promise.resolve();
-    Promise.all(this._groups.map(g => g.execute(root)));
+    Promise.all(this._groups.map(g => g.execute(root)))
+      .catch(reason => {
+        console.log('collection catch');
+        console.log(reason);
+      });
   }
 
   dispatch() {

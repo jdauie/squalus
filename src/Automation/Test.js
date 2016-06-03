@@ -5,7 +5,8 @@ class Test {
     this._name = name;
     this._method = null;
     this._url = null;
-    this._data = null;
+    this._contentType = null;
+    this._body = null;
     this._type = null;
     this._save = null;
     this._promise = null;
@@ -16,8 +17,34 @@ class Test {
       this._promise = new Promise((resolve, reject) => {
         console.log(this._name);
 
-        fetch(this._url).then(res => {
-          resolve();
+        const url = 'http://localjournal.submishmash.com' + this._url;
+
+        const request = new Request(url, {
+          mode: 'cors',
+          method: this._method,
+          headers: new Headers({
+            'Content-Type': this._contentType || 'application/json',
+          }),
+          body: this._body,
+        });
+
+        fetch(request).then(res => {
+          if (res.ok) {
+            // this will actually be to check for expected response, which may not be ok
+            if (this._save) {
+              Promise.all(Array.from(this._save.keys()).map(key => {
+                return Promise.resolve(this._save.get(key)(res)).then(v => {
+                  console.log('SAVE ' + key + ':');
+                  console.log(v);
+                });
+              })).then(() => resolve());
+            } else {
+              resolve();
+            }
+          } else {
+            //resolve();
+            reject('response not ok');
+          }
         }).catch(error => {
           reject(error);
         });
@@ -56,8 +83,17 @@ class Test {
     return this;
   }
 
-  data(data) {
-    this._data = data;
+  json(data) {
+    this._contentType = 'application/json';
+    this._body = JSON.stringify(data);
+    return this;
+  }
+
+  form(data) {
+    this._contentType = 'multipart/form-data';
+    const form = new FormData();
+    Object.keys(data).forEach(key => form.set(key, data[key]));
+    this._body = form;
     return this;
   }
 
