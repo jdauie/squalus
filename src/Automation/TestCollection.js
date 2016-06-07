@@ -20,10 +20,6 @@ class TestCollection {
         console.log(reason);
       });
   }
-
-  dispatch() {
-    //
-  }
 }
 
 export default function collection(name) {

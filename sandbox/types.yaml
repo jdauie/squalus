@@ -1,6 +1,11 @@
 ---
 Reminder:
 
+  Error:
+    message: string
+    modelState:
+      reminder: string[]
+
   Date:
     reminderDate: date
 

@@ -26,7 +26,7 @@ export default group('reminders-group')
     test('verify far future reminder is not returned')
       .get('/api/reminders')
       .is('Reminder.GetAll')
-      .test('no reminder', (body, context) => body.every(r => r.id !== context.get('productReminderId'))),
+      .expect('no reminder', (body, context) => body.every(r => r.id !== context.get('productReminderId'))),
 
     test('get reminder directly')
       .get(context => `/api/reminders/${context.get('productReminderId')}`)
@@ -44,7 +44,7 @@ export default group('reminders-group')
     test('verify future reminder is returned')
       .get('/api/reminders')
       .is('Reminder.GetAll')
-      .test('reminder', (body, context) => body.some(r => r.id === context.get('productReminderId'))),
+      .expect('reminder', (body, context) => body.some(r => r.id === context.get('productReminderId'))),
 
     test('update reminder to recurring')
       .put(context => `/api/reminders/${context.get('productReminderId')}`)
@@ -53,17 +53,18 @@ export default group('reminders-group')
         intervalOffset: 15,
       }),
 
-    test('update reminder with invalid data to test validation')
+    test('update reminder with invalid data')
       .put(context => `/api/reminders/${context.get('productReminderId')}`)
       .json({
         reminderDate: new Date().toISOString(),
         intervalUnit: 'weekly',
         intervalOffset: 45,
       })
-      .is(400)
-      .test('3 errors', body => body.modelState.reminder.length === 3),
+      .status(400)
+      .is('Reminder.Error')
+      .expect('3 errors', body => body.modelState.reminder.length === 2),
 
-    test('create reminder with invalid data to test validation')
+    test('create reminder with invalid data')
       .post('/api/reminders')
       .json(context => ({
         intervalUnit: 'weekly',
@@ -71,17 +72,9 @@ export default group('reminders-group')
         productId: context.get('productId'),
         templateId: context.get('templateId'),
       }))
-      .is(400),
-
-    test('create template reminder')
-      .post('/api/reminders')
-      .is('Reminder.Get')
-      .json(context => ({
-        intervalUnit: 'weekly',
-        intervalOffset: 1,
-        templateId: context.get('templateId'),
-      }))
-      .save('templateReminderId', body => body.id),
+      .status(400)
+      .is('Reminder.Error')
+      .expect('1 error', body => body.modelState.reminder.length === 1),
 
     test('create template reminder')
       .post('/api/reminders')
@@ -98,9 +91,4 @@ export default group('reminders-group')
 
     test('delete template reminder')
       .delete(context => `/api/reminders/${context.get('templateReminderId')}`),
-
-    // test('reminders-test-1')
-    //   .get('/api/reminders')
-    //   .is('Reminder.GetAll')
-    //   .save('reminderId', body => body[0].id),
   ]);
