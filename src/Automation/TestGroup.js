@@ -24,11 +24,11 @@ class TestGroup {
     return this;
   }
 
-  execute(root) {
+  execute(root, context) {
     if (!this._promise) {
       let when = root;
       if (this._requires) {
-        when = Promise.all(this._requires.map(g => g.execute(root)));
+        when = Promise.all(this._requires.map(g => g.execute(root, context)));
       }
       this._promise = new Promise((resolve, reject) => {
         if (this._parallel) {
@@ -51,7 +51,7 @@ class TestGroup {
 
           const onResolve = () => {
             if (tests.length) {
-              tests.pop().execute().then(onResolve, onReject);
+              tests.pop().execute(context).then(onResolve, onReject);
             } else {
               resolve();
             }

@@ -1,3 +1,4 @@
+import Squalus from '../Squalus';
 
 class Test {
 
@@ -12,32 +13,67 @@ class Test {
     this._promise = null;
   }
 
-  execute() {
+  execute(context) {
     if (!this._promise) {
       this._promise = new Promise((resolve, reject) => {
         console.log(this._name);
 
-        const url = 'http://localjournal.submishmash.com' + this._url;
+        const urlPrefix = 'http://localjournal.submishmash.com';
+        let url = this._url;
+        if (typeof url === 'function') {
+          url = url(context);
+        }
+        url = urlPrefix + url;
+
+        let body = this._body;
+        if (typeof body === 'function') {
+          body = body(context);
+        }
 
         const request = new Request(url, {
           mode: 'cors',
+          // todo: this is just for cors cookies
+          credentials: 'include',
           method: this._method,
           headers: new Headers({
             'Content-Type': this._contentType || 'application/json',
           }),
-          body: this._body,
+          body,
         });
 
         fetch(request).then(res => {
           if (res.ok) {
             // this will actually be to check for expected response, which may not be ok
-            if (this._save) {
-              Promise.all(Array.from(this._save.keys()).map(key => {
-                return Promise.resolve(this._save.get(key)(res)).then(v => {
-                  console.log('SAVE ' + key + ':');
-                  console.log(v);
-                });
-              })).then(() => resolve());
+
+            if (this._type) {
+              if (typeof this._type === 'number') {
+                if (res.status === this._type) {
+                  resolve();
+                }
+                reject('response status mismatch');
+              }
+
+              const type = Squalus.getType(this._type);
+              if (!type) {
+                resolve();
+              }
+              res.json().then(responseBody => {
+                type.validate(responseBody, 'body');
+
+                if (this._save) {
+                  Promise.all(Array.from(this._save.keys()).map(key => {
+                    return Promise.resolve(this._save.get(key)(responseBody)).then(v => {
+                      context.set(key, v);
+                      //console.log('SAVE ' + key + ':');
+                      //console.log(v);
+                    });
+                  })).then(() => resolve());
+                } else {
+                  resolve();
+                }
+              }).catch(reason => {
+                reject(reason);
+              });
             } else {
               resolve();
             }
@@ -68,6 +104,7 @@ class Test {
   put(url) {
     this._method = 'put';
     this._url = url;
+    this._type = this._type || 204;
     return this;
   }
 
@@ -80,12 +117,17 @@ class Test {
   delete(url) {
     this._method = 'delete';
     this._url = url;
+    this._type = this._type || 204;
     return this;
   }
 
   json(data) {
     this._contentType = 'application/json';
-    this._body = JSON.stringify(data);
+    if (typeof data === 'function') {
+      this._body = context => JSON.stringify(data(context));
+    } else {
+      this._body = JSON.stringify(data);
+    }
     return this;
   }
 
@@ -107,6 +149,11 @@ class Test {
       this._save = new Map();
     }
     this._save.set(name, func);
+    return this;
+  }
+
+  test() {
+    //
     return this;
   }
 }

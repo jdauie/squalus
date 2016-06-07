@@ -47,7 +47,7 @@ export default class ArrayType {
       throw new Error(`${path} must be an array`);
     }
 
-    return value.every((item, i) => item.validate(value, `${path}[${i}]`, returnOnly));
+    return value.every((item, i) => this._type.validate(item, `${path}[${i}]`, returnOnly));
   }
 
   value() {

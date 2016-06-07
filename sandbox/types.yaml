@@ -2,25 +2,50 @@
 Reminder:
 
   Date:
-    ReminderDate: date
+    reminderDate: date
 
   Weekly:
-    IntervalUnit: string{weekly}
-    IntervalOffset: uint{0-6}
+    intervalUnit: string{weekly}
+    intervalOffset: uint{0-6}
 
   Monthly:
-    IntervalUnit: string{monthly}
-    IntervalOffset: uint{1-28}
+    intervalUnit: string{monthly}
+    intervalOffset: uint{1-28}
 
   Update: Date|Weekly|Monthly
 
-  Create:
+  CreateTemplate:
     ^: Update
-    TemplateId: uint
+    templateId: uint
+
+  CreateProject:
+    ^: Update
+    productId: uint
+
+  Create: CreateTemplate|CreateProject
 
   Get:
     ^: Create
-    Id: uint
+    id: uint
+    label: string
+
+  GetAll: Get[]
+
+ReminderTarget:
+
+  Template:
+    templateId: uint
+
+  Product:
+    productId: uint
+
+  Any: Template|Product
+
+  Get:
+    ^: Any
+    label: string
+
+  GetAll: Get[]
 
 #xml: >
 #  content-type(text/xml,application/xml)

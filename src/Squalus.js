@@ -347,15 +347,23 @@ function buildType(def, scope) {
       // create inherited version of each object and re-aggregate
       const inheritedTypes = new Map();
       parent.types.forEach((branchType, key) => {
-        // add attributes to each branch
-        const attributes = new Map();
-        branchType.attributes().forEach(attr => {
-          attributes.set(attr.name(), attr.clone());
-        });
-        attributeNames.forEach(attr =>
-          attributes.set(attr.trim('?'), createAttrFromName(attr, buildType(def[attr], scope)))
-        );
-        inheritedTypes.set(key, new ObjectType(Array.from(attributes.values())));
+        const builder = (t, k) => {
+          // add attributes to each branch
+          const attributes = new Map();
+          t.attributes().forEach(attr => {
+            attributes.set(attr.name(), attr.clone());
+          });
+          attributeNames.forEach(attr =>
+            attributes.set(attr.trim('?'), createAttrFromName(attr, buildType(def[attr], scope)))
+          );
+          inheritedTypes.set(k, new ObjectType(Array.from(attributes.values())));
+        };
+
+        if (branchType instanceof BranchType) {
+          branchType.types.forEach((t, k) => builder(t, key + '-' + k));
+        } else {
+          builder(branchType, key);
+        }
       });
       return new BranchType(inheritedTypes);
     } else if (parents.every(parent => parent instanceof ObjectType)) {
@@ -380,6 +388,10 @@ function buildType(def, scope) {
 }
 
 export default class Squalus {
+
+  static getType(name) {
+    return registeredTypes.get(name);
+  }
 
   static buildTypes(root) {
     // check names and dependencies

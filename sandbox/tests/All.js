@@ -7,5 +7,5 @@ export default collection('collection1')
   .groups([
     Auth,
     Reminders,
-    Reminders2,
+    //Reminders2,
   ]);

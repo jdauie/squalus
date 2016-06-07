@@ -56,7 +56,7 @@ export default class BranchType {
   }
 
   validate(value, path, returnOnly) {
-    if (!this._types.some(type => type.validate(value, path, returnOnly))) {
+    if (!Array.from(this._types.values()).some(type => type.validate(value, path, true))) {
       if (returnOnly) {
         return false;
       }
