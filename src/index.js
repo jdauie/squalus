@@ -4,10 +4,6 @@ import yaml from 'js-yaml';
 
 import AllTestsCollection from '../sandbox/tests/All';
 
-console.log(AllTestsCollection);
-
-AllTestsCollection.execute();
-
 docReady(() => {
   Promise.all([
     '/sandbox/types.yaml',
@@ -17,5 +13,7 @@ docReady(() => {
       Squalus.buildTypes(types);
       Squalus.buildTests(endpoints);
     }).apply(null, values.map(v => yaml.safeLoad(v)));
-  }));
+  })).then(() =>
+    AllTestsCollection.execute()
+  );
 });

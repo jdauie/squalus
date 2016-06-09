@@ -26,6 +26,7 @@ class TestGroup {
 
   execute(root, context) {
     if (!this._promise) {
+      console.log(`execute group '${this._name}`);
       let when = root;
       if (this._requires) {
         when = Promise.all(this._requires.map(g => g.execute(root, context)));

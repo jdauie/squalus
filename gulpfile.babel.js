@@ -5,6 +5,7 @@ import gutil from 'gulp-util';
 import webpack from 'webpack';
 import webpackConfig from './webpack.config.babel';
 import WebpackDevServer from 'webpack-dev-server';
+import runApiTests from './src/index2';
 
 gulp.task('default', ['webpack:build']);
 
@@ -21,6 +22,10 @@ gulp.task('test', ['babel'], () =>
       gulp.emit('end');
     })
 );
+
+gulp.task('test:api', ['babel'], () => {
+  runApiTests();
+});
 
 gulp.task('watch', () =>
   gulp.watch(['src/**', 'test/**'], ['test'])

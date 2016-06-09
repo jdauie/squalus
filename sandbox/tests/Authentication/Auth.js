@@ -1,9 +1,9 @@
 import group from '../../../src/Automation/TestGroup';
 import test from '../../../src/Automation/Test';
 
-function getCookie(name) {
+function getCookie(cookie, name) {
   const map = new Map();
-  document.cookie.split(';').forEach(c => {
+  cookie.split(';').forEach(c => {
     const [key, val] = c.split('=', 2);
     map.set(key, val);
   });
@@ -18,5 +18,5 @@ export default group('auth-group')
         UserName: 'josh+level5@submittable.com',
         Password: 'password',
       })
-      .save('session', () => getCookie('.submittable')),
+      .save('sessionCookie', (body, res) => res.headers['set-cookie'][0]),
   ]);

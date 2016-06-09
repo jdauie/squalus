@@ -1,4 +1,5 @@
 import Squalus from '../Squalus';
+import rp from 'request-promise';
 
 class Test {
 
@@ -31,23 +32,12 @@ class Test {
         body = body(context);
       }
 
-      const request = new Request(url, {
-        mode: 'cors',
-        // todo: this is just for cors cookies
-        credentials: 'include',
-        method: this._method,
-        headers: new Headers({
-          'Content-Type': this._contentType || 'application/json',
-        }),
-        body,
-      });
-
       const status = (response) => {
         if (!this._status || typeof this._status !== 'number') {
           return Promise.reject('invalid response status');
         }
-        if (response.status !== this._status) {
-          return Promise.reject(`response status ${response.status} does not match expected ${this._status}`);
+        if (response.statusCode !== this._status) {
+          return Promise.reject(`response status ${response.statusCode} does not match expected ${this._status}`);
         }
         return Promise.resolve(response);
       };
@@ -58,45 +48,57 @@ class Test {
           if (!responseType) {
             return Promise.reject(`failed to create response type ${this._type}`);
           }
-          return response.json().then(json => {
-            responseType.validate(json, 'body');
-            return Promise.resolve(json);
-          });
+          const json = JSON.parse(response.body);
+          response.bodyJson = json;
+          responseType.validate(json, 'body');
+          return Promise.resolve(response);
         }
-        return Promise.resolve();
+        return Promise.resolve(response);
       };
 
-      const expect = (responseBody) => {
+      const expect = (response) => {
         if (this._expect) {
           return Promise.all(Array.from(this._expect.keys()).map(key =>
-            Promise.resolve(this._expect.get(key)(responseBody, context)).then(v => {
+            Promise.resolve(this._expect.get(key)(response.bodyJson, context)).then(v => {
               if (!v) {
                 return Promise.reject(`expect test '${key}' failed`);
               }
-              return Promise.resolve();
+              return Promise.resolve(response);
             })
-          )).then(() => Promise.resolve(responseBody));
+          )).then(() => Promise.resolve(response));
         }
-        return Promise.resolve(responseBody);
+        return Promise.resolve(response);
       };
 
-      const save = (responseBody) => {
+      const save = (response) => {
         if (this._save) {
           return Promise.all(Array.from(this._save.keys()).map(key =>
-            Promise.resolve(this._save.get(key)(responseBody)).then(v => {
+            Promise.resolve(this._save.get(key)(response.bodyJson, response)).then(v => {
               context.set(key, v);
               console.log(`  [${key}] = ${v}`);
             })
-          )).then(() => Promise.resolve(responseBody));
+          )).then(() => Promise.resolve(response));
         }
-        return Promise.resolve(responseBody);
+        return Promise.resolve(response);
       };
 
-      this._promise = fetch(request)
+      const options = {
+        uri: url,
+        method: this._method,
+        headers: {
+          'Content-Type': this._contentType || 'application/json',
+          Cookie: context.get('sessionCookie'),
+        },
+        body,
+        resolveWithFullResponse: true,
+        simple: false,
+      };
+
+      this._promise = rp(options)
         .then(res => status(res))
         .then(res => type(res))
-        .then(responseBody => expect(responseBody))
-        .then(responseBody => save(responseBody));
+        .then(res => expect(res))
+        .then(res => save(res));
     }
     return this._promise;
   }
