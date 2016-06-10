@@ -24,9 +24,8 @@ class TestGroup {
     return this;
   }
 
-  execute(root, context) {
+  execute(context, collection, root) {
     if (!this._promise) {
-      console.log(`execute group '${this._name}`);
       let when = root;
       if (this._requires) {
         when = Promise.all(this._requires.map(g => g.execute(root, context)));
@@ -35,30 +34,19 @@ class TestGroup {
         if (this._parallel) {
           when.then(() => {
             Promise.all(this._tests.map(t => t.execute())).then(resolve, reject);
-            resolve();
-          }, reason => {
-            // a previous required group failed?
-            console.log(reason);
-            reject(reason);
           });
         } else {
           const tests = this._tests.slice().reverse();
 
-          const onReject = reason => {
-            // previous test failed in this group?
-            console.log(reason);
-            reject(reason);
-          };
-
           const onResolve = () => {
             if (tests.length) {
-              tests.pop().execute(context).then(onResolve, onReject);
+              tests.pop().execute(context, this, collection).then(onResolve, reject);
             } else {
               resolve();
             }
           };
 
-          when.then(onResolve, onReject);
+          when.then(onResolve, reject);
         }
       });
     }

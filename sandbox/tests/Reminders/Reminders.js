@@ -2,7 +2,7 @@ import group from '../../../src/Automation/TestGroup';
 import test from '../../../src/Automation/Test';
 import Auth from '../Authentication/Auth';
 
-export default group('reminders-group')
+export default group('reminders')
   .requires(Auth)
   .tests([
     test('get all reminder targets')

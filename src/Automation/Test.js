@@ -1,5 +1,14 @@
 import Squalus from '../Squalus';
 import rp from 'request-promise';
+import colors from 'colors';
+import TestError from './TestError';
+
+function padRight(str, width, char = ' ') {
+  if (str.length < width) {
+    return str + char.repeat(width - str.length);
+  }
+  return str;
+}
 
 class Test {
 
@@ -16,28 +25,29 @@ class Test {
     this._promise = null;
   }
 
-  execute(context) {
+  execute(context, group, collection) {
     if (!this._promise) {
-      console.log(this._name);
-
-      const urlPrefix = 'http://localjournal.submishmash.com';
       let url = this._url;
       if (typeof url === 'function') {
         url = url(context);
       }
-      url = urlPrefix + url;
+
+      const absUrl = context.get('baseUrl') + url;
 
       let body = this._body;
       if (typeof body === 'function') {
         body = body(context);
       }
 
+      const reject = (reason, response) =>
+        Promise.reject(new TestError(this, group, collection, reason, response));
+
       const status = (response) => {
         if (!this._status || typeof this._status !== 'number') {
-          return Promise.reject('invalid response status');
+          return reject('invalid response status', response);
         }
         if (response.statusCode !== this._status) {
-          return Promise.reject(`response status ${response.statusCode} does not match expected ${this._status}`);
+          return reject(`response status ${response.statusCode} does not match expected ${this._status}`, response);
         }
         return Promise.resolve(response);
       };
@@ -46,7 +56,7 @@ class Test {
         if (this._type) {
           const responseType = Squalus.getType(this._type);
           if (!responseType) {
-            return Promise.reject(`failed to create response type ${this._type}`);
+            return reject(`failed to create response type ${this._type}`, response);
           }
           const json = JSON.parse(response.body);
           response.bodyJson = json;
@@ -61,7 +71,7 @@ class Test {
           return Promise.all(Array.from(this._expect.keys()).map(key =>
             Promise.resolve(this._expect.get(key)(response.bodyJson, context)).then(v => {
               if (!v) {
-                return Promise.reject(`expect test '${key}' failed`);
+                return reject(`expect test '${key}' failed`, response);
               }
               return Promise.resolve(response);
             })
@@ -74,8 +84,11 @@ class Test {
         if (this._save) {
           return Promise.all(Array.from(this._save.keys()).map(key =>
             Promise.resolve(this._save.get(key)(response.bodyJson, response)).then(v => {
+              if (context.has(key)) {
+                throw new Error(`The context already contains key '${key}'`);
+              }
               context.set(key, v);
-              console.log(`  [${key}] = ${v}`);
+              // console.log(`  [${key}] = ${v}`);
             })
           )).then(() => Promise.resolve(response));
         }
@@ -83,7 +96,7 @@ class Test {
       };
 
       const options = {
-        uri: url,
+        uri: absUrl,
         method: this._method,
         headers: {
           'Content-Type': this._contentType || 'application/json',
@@ -98,7 +111,11 @@ class Test {
         .then(res => status(res))
         .then(res => type(res))
         .then(res => expect(res))
-        .then(res => save(res));
+        .then(res => save(res))
+        .then(() => {
+          console.log(`    ${padRight(group._name, collection.getMaxGroupNameLength()).gray} ${padRight(this._method.toUpperCase(), 6).magenta} ${url} ${this._name.cyan}`);
+          return Promise.resolve();
+        });
     }
     return this._promise;
   }

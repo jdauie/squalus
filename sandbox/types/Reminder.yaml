@@ -1,0 +1,53 @@
+---
+Reminder:
+
+  Error:
+    message: string
+    modelState:
+      reminder: string[]
+
+  Date:
+    reminderDate: date
+
+  Weekly:
+    intervalUnit: string{weekly}
+    intervalOffset: uint{0-6}
+
+  Monthly:
+    intervalUnit: string{monthly}
+    intervalOffset: uint{1-28}
+
+  Update: Date|Weekly|Monthly
+
+  CreateTemplate:
+    ^: Update
+    templateId: uint
+
+  CreateProject:
+    ^: Update
+    productId: uint
+
+  Create: CreateTemplate|CreateProject
+
+  Get:
+    ^: Create
+    id: uint
+    label: string
+
+  GetAll: Get[]
+
+ReminderTarget:
+
+  Template:
+    templateId: uint
+
+  Product:
+    productId: uint
+
+  Any: Template|Product
+
+  Get:
+    ^: Any
+    label: string
+
+  GetAll: Get[]

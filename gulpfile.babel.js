@@ -1,3 +1,5 @@
+// eslint-disable-line global-require
+
 import gulp from 'gulp';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
@@ -5,7 +7,9 @@ import gutil from 'gulp-util';
 import webpack from 'webpack';
 import webpackConfig from './webpack.config.babel';
 import WebpackDevServer from 'webpack-dev-server';
-import runApiTests from './src/index2';
+import fs from 'fs';
+import yaml from 'js-yaml';
+import Squalus from './src/Squalus';
 
 gulp.task('default', ['webpack:build']);
 
@@ -24,7 +28,26 @@ gulp.task('test', ['babel'], () =>
 );
 
 gulp.task('test:api', ['babel'], () => {
-  runApiTests();
+  const typePath = `${__dirname}/sandbox/types`;
+  const testPath = `${__dirname}/sandbox/tests/All.js`;
+  const context = {
+    baseUrl: 'http://localjournal.submishmash.com',
+    adminUser: 'josh+level5@submittable.com',
+    adminPassword: 'password',
+  };
+
+  let files = [typePath];
+  if (fs.statSync(typePath).isDirectory()) {
+    files = fs.readdirSync(typePath).map(f => `${typePath}/${f}`);
+  }
+  const types = Object.assign.apply(null,
+    files.map(file => yaml.safeLoad(fs.readFileSync(file, { encoding: 'utf8' })))
+  );
+
+  Squalus.buildTypes(types);
+
+  const collection = require(testPath).default;
+  return collection.execute(context);
 });
 
 gulp.task('watch', () =>
