@@ -62,7 +62,11 @@ export default class Test {
           }
           const json = JSON.parse(response.body);
           response.bodyJson = json;// eslint-disable-line no-param-reassign
-          responseType.validate(json, 'body');
+          try {
+            responseType.validate(json, 'body');
+          } catch (e) {
+            return reject(e, response);
+          }
           return Promise.resolve(response);
         }
         return Promise.resolve(response);

@@ -39,6 +39,11 @@ export default class TestCollection {
       console.log(`  ${testCount} passing`.green);
       console.log();
     }).catch(error => {
+      if (!error._test) {
+        console.log(error);
+        return;
+      }
+
       const info = {
         reason: error._reason,
         group: error._group._name,

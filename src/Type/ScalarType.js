@@ -80,7 +80,7 @@ export default class ScalarType {
       if (silent) {
         return false;
       }
-      throw new Error(`${path}: '${value}'} must be in [${this._values.join(', ')}]`);
+      throw new Error(`${path}: '${value}' must be in [${this._values.join(', ')}]`);
     }
 
     return true;

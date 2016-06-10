@@ -4,7 +4,7 @@ import ScalarType from './../ScalarType';
 export default class BoolScalarType extends ScalarType {
 
   _parse(values) {
-    return values ? values.map(v => v === 'true') : null;
+    return values ? values.map(v => v === true || v === 'true') : null;
   }
 
   _build() {

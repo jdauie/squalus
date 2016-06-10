@@ -1,6 +1,6 @@
 {
   "name": "squalus",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "description": "REST API endpoint testing",
   "main": "lib/squalus",
   "scripts": {

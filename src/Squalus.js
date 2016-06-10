@@ -264,6 +264,11 @@ function splitArray(array, split) {
 }
 
 function buildType(def, scope) {
+  // shortcuts
+  if (typeof def === 'boolean') {
+    def = def ? 'bool{true}' : 'bool{false}'; // eslint-disable-line no-param-reassign
+  }
+
   // references
   if (typeof def === 'string') {
     const tokens = parseTokensFromType(def);
