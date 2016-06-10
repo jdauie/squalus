@@ -1,3 +1,5 @@
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
+
 import colors from 'colors';
 
 class TestCollection {

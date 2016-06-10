@@ -1,5 +1,4 @@
-import group from '../../../src/Automation/TestGroup';
-import test from '../../../src/Automation/Test';
+import { group, test } from '../../../src/Automation/TestGroup';
 import Auth from '../Authentication/Auth';
 
 export default group('reminders')

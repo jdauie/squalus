@@ -360,7 +360,7 @@ function buildType(def, scope) {
         };
 
         if (branchType instanceof BranchType) {
-          branchType.types.forEach((t, k) => builder(t, key + '-' + k));
+          branchType.types.forEach((t, k) => builder(t, `${key}-${k}`));
         } else {
           builder(branchType, key);
         }

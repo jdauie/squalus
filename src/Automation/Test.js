@@ -1,3 +1,5 @@
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
+
 import Squalus from '../Squalus';
 import rp from 'request-promise';
 import colors from 'colors';
@@ -10,7 +12,7 @@ function padRight(str, width, char = ' ') {
   return str;
 }
 
-class Test {
+export default class Test {
 
   constructor(name) {
     this._name = name;
@@ -59,7 +61,7 @@ class Test {
             return reject(`failed to create response type ${this._type}`, response);
           }
           const json = JSON.parse(response.body);
-          response.bodyJson = json;
+          response.bodyJson = json;// eslint-disable-line no-param-reassign
           responseType.validate(json, 'body');
           return Promise.resolve(response);
         }
@@ -113,7 +115,12 @@ class Test {
         .then(res => expect(res))
         .then(res => save(res))
         .then(() => {
-          console.log(`    ${padRight(group._name, collection.getMaxGroupNameLength()).gray} ${padRight(this._method.toUpperCase(), 6).magenta} ${url} ${this._name.cyan}`);
+          console.log('    %s %s %s %s',
+            padRight(group._name, collection.getMaxGroupNameLength()).gray,
+            padRight(this._method.toUpperCase(), 6).magenta,
+            url,
+            this._name.cyan
+          );
           return Promise.resolve();
         });
     }
@@ -191,8 +198,4 @@ class Test {
     this._expect.set(name, func);
     return this;
   }
-}
-
-export default function test(name) {
-  return new Test(name);
 }

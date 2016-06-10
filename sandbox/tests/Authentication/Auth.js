@@ -1,5 +1,4 @@
-import group from '../../../src/Automation/TestGroup';
-import test from '../../../src/Automation/Test';
+import { group, test } from '../../../src/Automation/TestGroup';
 
 export default group('auth')
   .tests([

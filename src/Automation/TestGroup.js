@@ -1,3 +1,4 @@
+import Test from './Test';
 
 class TestGroup {
 
@@ -54,6 +55,10 @@ class TestGroup {
   }
 }
 
-export default function group(name) {
+export function group(name) {
   return new TestGroup(name);
+}
+
+export function test(name) {
+  return new Test(name);
 }

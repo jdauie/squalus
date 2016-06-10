@@ -1,12 +1,12 @@
 import path from 'path';
 
-module.exports = {
+export default {
   entry: {
     squalus: './src/index.js',
   },
   output: {
-    path: path.join(__dirname, 'dist'),
-    publicPath: 'dist/',
+    path: path.join(__dirname, 'lib'),
+    publicPath: 'lib/',
     filename: '[name].js',
     chunkFilename: '[id].js',
     sourceMapFilename: '[name].js.map',

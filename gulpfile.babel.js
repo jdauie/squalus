@@ -1,15 +1,13 @@
-// eslint-disable-line global-require
-
 import gulp from 'gulp';
+import path from 'path';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import gutil from 'gulp-util';
 import webpack from 'webpack';
 import webpackConfig from './webpack.config.babel';
 import WebpackDevServer from 'webpack-dev-server';
-import fs from 'fs';
-import yaml from 'js-yaml';
-import Squalus from './src/Squalus';
+import SqualusNode from './src/SqualusNode';
+import AllTestsCollection from './sandbox/tests/All';
 
 gulp.task('default', ['webpack:build']);
 
@@ -28,31 +26,12 @@ gulp.task('test', ['babel'], () =>
 );
 
 gulp.task('test:api', ['babel'], () => {
-  const typePath = `${__dirname}/sandbox/types`;
-  const testPath = `${__dirname}/sandbox/tests/All.js`;
-  const context = {
-    baseUrl: 'http://localjournal.submishmash.com',
-    adminUser: 'josh+level5@submittable.com',
-    adminPassword: 'password',
-  };
-
-  let files = [typePath];
-  if (fs.statSync(typePath).isDirectory()) {
-    files = fs.readdirSync(typePath).map(f => `${typePath}/${f}`);
-  }
-  const types = Object.assign.apply(null,
-    files.map(file => yaml.safeLoad(fs.readFileSync(file, { encoding: 'utf8' })))
+  return SqualusNode.execute(
+    path.join(__dirname, '/sandbox/tests'),
+    AllTestsCollection,
+    path.join(__dirname, '/sandbox/tests/All.context.json')
   );
-
-  Squalus.buildTypes(types);
-
-  const collection = require(testPath).default;
-  return collection.execute(context);
 });
-
-gulp.task('watch', () =>
-  gulp.watch(['src/**', 'test/**'], ['test'])
-);
 
 gulp.task('webpack:build', [], (callback) => {
   const config = Object.create(webpackConfig);
@@ -60,6 +39,7 @@ gulp.task('webpack:build', [], (callback) => {
   config.plugins = [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin(),
+    new webpack.IgnorePlugin(/cls-bluebird/, /request-promise/),
   ];
 
   webpack(config, (err, stats) => {

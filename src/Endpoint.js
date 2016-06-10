@@ -184,22 +184,21 @@ export default class Endpoint {
     this.lock();
 
     fetch(url).then(res => {
-
       // testing
-      const json = {
-        IntervalUnit: 'monthly',
-        IntervalOffset: 15,
-        TemplateId: 4,
-        Id: 3990,
-      };
+      // const json = {
+      //   IntervalUnit: 'monthly',
+      //   IntervalOffset: 15,
+      //   TemplateId: 4,
+      //   Id: 3990,
+      // };
 
-      // if (!res.ok) {
-      //   status.textContent = 'something went wrong';
-      //   this.unlock();
-      //   return;
-      // }
-      //
-      // res.json().then(json => {
+      if (!res.ok) {
+        status.textContent = 'something went wrong';
+        this.unlock();
+        return;
+      }
+
+      res.json().then(json => {
         let data = json;
         // todo: this is going to require the actual validation implementation to handle branching
 
@@ -220,7 +219,7 @@ export default class Endpoint {
         }
 
         this.unlock();
-      //});
+      });
     }).catch(error => {
       status.textContent = error.message;
       this.unlock();
