@@ -1,8 +1,8 @@
 {
   "name": "squalus",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "REST API endpoint testing",
-  "main": "src/SqualusNode",
+  "main": "lib/squalus",
   "scripts": {
     "lint": "eslint *.js src --ext .js --cache",
     "build": "npm run lint && gulp webpack:build",
@@ -51,6 +51,7 @@
     "gulp-util": "^3.0.7",
     "mocha": "^2.4.5",
     "webpack": "^1.13.0",
-    "webpack-dev-server": "^1.14.1"
+    "webpack-dev-server": "^1.14.1",
+    "webpack-node-externals": "^1.2.0"
   }
 }

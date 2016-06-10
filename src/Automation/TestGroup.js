@@ -1,6 +1,5 @@
-import Test from './Test';
 
-class TestGroup {
+export default class TestGroup {
 
   constructor(name) {
     this._name = name;
@@ -53,12 +52,4 @@ class TestGroup {
     }
     return this._promise;
   }
-}
-
-export function group(name) {
-  return new TestGroup(name);
-}
-
-export function test(name) {
-  return new Test(name);
 }

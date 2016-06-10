@@ -1,4 +1,4 @@
-import { group, test } from '../../../src/Automation/TestGroup';
+import { group, test } from '../../../src/SqualusNode';
 import Auth from '../Authentication/Auth';
 
 export default group('reminders')

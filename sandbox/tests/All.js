@@ -1,4 +1,4 @@
-import collection from '../../src/Automation/TestCollection';
+import { collection } from '../../src/SqualusNode';
 import Auth from './Authentication/Auth';
 import Reminders from './Reminders/Reminders';
 

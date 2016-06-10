@@ -6,7 +6,7 @@ import gutil from 'gulp-util';
 import webpack from 'webpack';
 import webpackConfig from './webpack.config.babel';
 import WebpackDevServer from 'webpack-dev-server';
-import SqualusNode from './src/SqualusNode';
+import { squalus } from './src/SqualusNode';
 import AllTestsCollection from './sandbox/tests/All';
 
 gulp.task('default', ['webpack:build']);
@@ -25,13 +25,13 @@ gulp.task('test', ['babel'], () =>
     })
 );
 
-gulp.task('test:api', ['babel'], () => {
-  return SqualusNode.execute(
+gulp.task('test:api', () =>
+  squalus.execute(
     path.join(__dirname, '/sandbox/tests'),
     AllTestsCollection,
     path.join(__dirname, '/sandbox/tests/All.context.json')
-  );
-});
+  )
+);
 
 gulp.task('webpack:build', [], (callback) => {
   const config = Object.create(webpackConfig);
@@ -39,8 +39,8 @@ gulp.task('webpack:build', [], (callback) => {
   config.plugins = [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin(),
-    new webpack.IgnorePlugin(/cls-bluebird/, /request-promise/),
   ];
+  config.target = 'node';
 
   webpack(config, (err, stats) => {
     if (err) throw new gutil.PluginError('webpack', err);

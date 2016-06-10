@@ -2,7 +2,7 @@
 
 import colors from 'colors';
 
-class TestCollection {
+export default class TestCollection {
 
   constructor(name) {
     this._name = name;
@@ -61,8 +61,4 @@ class TestCollection {
       console.log();
     });
   }
-}
-
-export default function collection(name) {
-  return new TestCollection(name);
 }

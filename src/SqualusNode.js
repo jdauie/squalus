@@ -1,4 +1,7 @@
 import Squalus from './Squalus';
+import TestCollection from './Automation/TestCollection';
+import TestGroup from './Automation/TestGroup';
+import Test from './Automation/Test';
 import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
@@ -25,9 +28,9 @@ function getFiles(source, regex) {
   return files;
 }
 
-export default class SqualusNode extends Squalus {
+class SqualusNode extends Squalus {
 
-  static execute(typePath, collection, initialContextPath) {
+  static execute(typePath, collectionInstance, initialContextPath) {
     const files = getFiles(typePath, /\.yaml$/);
 
     if (files.length) {
@@ -43,6 +46,20 @@ export default class SqualusNode extends Squalus {
       context = JSON.parse(fs.readFileSync(initialContextPath, { encoding: 'utf8' }));
     }
 
-    return collection.execute(context);
+    return collectionInstance.execute(context);
   }
 }
+
+function collection(name) {
+  return new TestCollection(name);
+}
+
+function group(name) {
+  return new TestGroup(name);
+}
+
+function test(name) {
+  return new Test(name);
+}
+
+export { SqualusNode as squalus, collection, group, test };

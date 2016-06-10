@@ -1,4 +1,4 @@
-import { group, test } from '../../../src/Automation/TestGroup';
+import { group, test } from '../../../src/SqualusNode';
 
 export default group('auth')
   .tests([

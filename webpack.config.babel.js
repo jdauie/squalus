@@ -1,8 +1,9 @@
 import path from 'path';
+import externals from 'webpack-node-externals';
 
 export default {
   entry: {
-    squalus: './src/index.js',
+    squalus: './src/SqualusNode.js',
   },
   output: {
     path: path.join(__dirname, 'lib'),
@@ -10,6 +11,7 @@ export default {
     filename: '[name].js',
     chunkFilename: '[id].js',
     sourceMapFilename: '[name].js.map',
+    libraryTarget: 'commonjs2',
   },
   resolve: {
     modulesDirectories: ['node_modules'],
@@ -24,8 +26,5 @@ export default {
       },
     ],
   },
-  resolveLoader: {
-    modulesDirectories: ['node_modules'],
-    root: path.resolve(__dirname, 'node_modules'),
-  },
+  externals: [externals()],
 };
