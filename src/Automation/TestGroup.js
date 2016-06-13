@@ -5,6 +5,7 @@ export default class TestGroup {
     this._name = name;
     this._requires = null;
     this._parallel = false;
+    this._session = null;
     this._tests = null;
     this._promise = null;
   }
@@ -16,6 +17,11 @@ export default class TestGroup {
 
   parallel() {
     this._parallel = true;
+    return this;
+  }
+
+  session(name) {
+    this._session = name;
     return this;
   }
 
@@ -33,7 +39,7 @@ export default class TestGroup {
       this._promise = new Promise((resolve, reject) => {
         if (this._parallel) {
           when.then(() => {
-            Promise.all(this._tests.map(t => t.execute())).then(resolve, reject);
+            Promise.all(this._tests.map(t => t.execute(context, this, collection))).then(resolve, reject);
           });
         } else {
           const tests = this._tests.slice().reverse();

@@ -3,6 +3,7 @@ import Auth from '../Authentication/Auth';
 
 export default group('reminders')
   .requires(Auth)
+  .session('sessionCookie')
   .tests([
     test('get all reminder targets')
       .get('/api/remindables')

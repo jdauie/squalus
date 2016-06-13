@@ -106,7 +106,7 @@ export default class Test {
         method: this._method,
         headers: {
           'Content-Type': this._contentType || 'application/json',
-          Cookie: context.get('sessionCookie'),
+          Cookie: context.get(group._session),
         },
         body,
         resolveWithFullResponse: true,
