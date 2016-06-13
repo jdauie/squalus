@@ -12,6 +12,34 @@ function padRight(str, width, char = ' ') {
   return str;
 }
 
+const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+const ARGUMENT_NAMES = /([^\s,]+)/g;
+function getParamNames(func) {
+  const fnStr = func.toString().replace(STRIP_COMMENTS, '');
+  let result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+  if (result === null) {
+    result = [];
+  }
+  return result;
+}
+
+function callFuncWithParamInjection(func, response, body, context) {
+  const sourceParams = new Map();
+  sourceParams.set('response', response);
+  sourceParams.set('body', body);
+  sourceParams.set('context', context);
+  const maps = [sourceParams];
+  Array.from(sourceParams.values()).filter(p => p instanceof Map).forEach(map => maps.push(map));
+
+  return func.apply(null, getParamNames(func).map(name => {
+    const map = maps.find(m => m.has(name));
+    if (map) {
+      return map.get(name);
+    }
+    return undefined;
+  }));
+}
+
 export default class Test {
 
   constructor(name) {
@@ -33,6 +61,11 @@ export default class Test {
       if (typeof url === 'function') {
         url = url(context);
       }
+
+      const populateVariables = (m, name) => (context.has(name) ? context.get(name) : m);
+
+      url = url.replace(/[@:]([a-z0-9_]+)/gi, populateVariables);
+      url = url.replace(/{([a-z0-9_]+)}/gi, populateVariables);
 
       const absUrl = context.get('baseUrl') + url;
 
@@ -74,10 +107,10 @@ export default class Test {
 
       const expect = (response) => {
         if (this._expect) {
-          return Promise.all(Array.from(this._expect.keys()).map(key =>
-            Promise.resolve(this._expect.get(key)(response.bodyJson, context)).then(v => {
-              if (!v) {
-                return reject(`expect test '${key}' failed`, response);
+          return Promise.all(this._expect.map((func, i) =>
+            Promise.resolve(callFuncWithParamInjection(func, response, response.bodyJson, context)).then(passed => {
+              if (!passed) {
+                return reject(`expect test '${i}' failed`, response);
               }
               return Promise.resolve(response);
             })
@@ -89,7 +122,9 @@ export default class Test {
       const save = (response) => {
         if (this._save) {
           return Promise.all(Array.from(this._save.keys()).map(key =>
-            Promise.resolve(this._save.get(key)(response.bodyJson, response)).then(v => {
+            Promise.resolve(
+              callFuncWithParamInjection(this._save.get(key), response, response.bodyJson, context)
+            ).then(v => {
               if (context.has(key)) {
                 throw new Error(`The context already contains key '${key}'`);
               }
@@ -177,16 +212,6 @@ export default class Test {
     return this;
   }
 
-  status(code) {
-    this._status = code;
-    return this;
-  }
-
-  is(type) {
-    this._type = type;
-    return this;
-  }
-
   save(name, func) {
     if (!this._save) {
       this._save = new Map();
@@ -195,11 +220,17 @@ export default class Test {
     return this;
   }
 
-  expect(name, func) {
-    if (!this._expect) {
-      this._expect = new Map();
+  expect(type) {
+    if (typeof type === 'function') {
+      if (!this._expect) {
+        this._expect = [];
+      }
+      this._expect.push(type);
+    } else if (typeof type === 'number') {
+      this._status = type;
+    } else {
+      this._type = type;
     }
-    this._expect.set(name, func);
     return this;
   }
 }

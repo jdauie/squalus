@@ -52,6 +52,7 @@ export default class TestCollection {
         method: error._response.request.method.toUpperCase(),
         body: error._response.request.body,
         response: error._response.body,
+        context: JSON.stringify(context),
       };
       const maxInfoNameLength = Object.keys(info).reduce((a, b) => (Math.max(a, b.length)), 0);
 

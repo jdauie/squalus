@@ -8,6 +8,6 @@ export default group('auth')
         UserName: context.get('adminUser'),
         Password: context.get('adminPassword'),
       }))
-      .is('Login.Response')
-      .save('sessionCookie', (body, res) => res.headers['set-cookie'][0]),
+      .expect('Login.Response')
+      .save('adminSessionCookie', response => response.headers['set-cookie'][0]),
   ]);
