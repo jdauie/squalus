@@ -2,9 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>API Test</title>
   <link rel="stylesheet" href="main.css">
-  <script src="../dist/squalus.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script>
+  <script>
+    require.config({
+      paths: {
+        squalus: '../lib/squalus',
+      },
+    });
+    require(['squalus'], function(squalus) {
+      squalus.default.build([
+        '/sandbox/tests/Authentication/Auth.yaml',
+        '/sandbox/tests/Reminders/Reminder.yaml',
+        '/sandbox/tests/Test/Test.yaml',
+      ], '/sandbox/endpoints.yaml', 'api-root');
+    });
+  </script>
 </head>
 <body>
 

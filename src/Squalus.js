@@ -409,8 +409,7 @@ export default class Squalus {
     });
   }
 
-  static buildTests(tests) {
-    const root = document.getElementById('api-root');
+  static buildTests(tests, root) {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {

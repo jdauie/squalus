@@ -4,10 +4,24 @@ import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import gutil from 'gulp-util';
 import webpack from 'webpack';
-import webpackConfig from './webpack.config.babel';
+import webpackNodeConfig from './webpack.config.node.babel';
+import webpackWebConfig from './webpack.config.web.babel';
 import WebpackDevServer from 'webpack-dev-server';
 import { squalus } from './src/SqualusNode';
 import AllTestsCollection from './sandbox/tests/All';
+
+const devServerPort = 8080;
+
+function buildWebpackConfig(config, callback) {
+  webpack(config, (err, stats) => {
+    if (err) throw new gutil.PluginError('webpack', err);
+    gutil.log('[webpack:build]', stats.toString({
+      colors: true,
+      progress: true,
+    }));
+    callback();
+  });
+}
 
 gulp.task('default', ['webpack:build']);
 
@@ -34,27 +48,14 @@ gulp.task('test:api', () =>
 );
 
 gulp.task('webpack:build', [], (callback) => {
-  const config = Object.create(webpackConfig);
-  config.devtool = 'source-map';
-  config.plugins = [
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
-  ];
-  config.target = 'node';
-
-  webpack(config, (err, stats) => {
-    if (err) throw new gutil.PluginError('webpack', err);
-    gutil.log('[webpack:build]', stats.toString({
-      colors: true,
-      progress: true,
-    }));
-    callback();
-  });
+  buildWebpackConfig([
+    Object.create(webpackNodeConfig),
+    Object.create(webpackWebConfig),
+  ], callback);
 });
 
 gulp.task('webpack:server', ['webpack:build'], () => {
-  const config = Object.create(webpackConfig);
-  config.devtool = 'source-map';
+  const config = Object.create(webpackWebConfig);
   config.debug = true;
 
   new WebpackDevServer(webpack(config), {
@@ -63,8 +64,8 @@ gulp.task('webpack:server', ['webpack:build'], () => {
       colors: true,
     },
     hot: true,
-  }).listen(8080, 'localhost', (err) => {
+  }).listen(devServerPort, '0.0.0.0', (err) => {
     if (err) throw new gutil.PluginError('webpack-dev-server', err);
-    gutil.log('[webpack-dev-server]', 'http://localhost:8080/webpack-dev-server');
+    gutil.log('[webpack-dev-server]', `http://localhost:${devServerPort}/webpack-dev-server`);
   });
 });
