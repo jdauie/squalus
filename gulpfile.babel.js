@@ -49,8 +49,8 @@ gulp.task('test:api', () =>
 
 gulp.task('webpack:build', [], (callback) => {
   buildWebpackConfig([
-    Object.create(webpackNodeConfig),
-    Object.create(webpackWebConfig),
+    webpackNodeConfig,
+    webpackWebConfig,
   ], callback);
 });
 

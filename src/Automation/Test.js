@@ -47,6 +47,7 @@ export default class Test {
     this._method = null;
     this._url = null;
     this._contentType = null;
+    this._responseContentType = null;
     this._body = null;
     this._status = null;
     this._type = null;
@@ -84,6 +85,13 @@ export default class Test {
         if (response.statusCode !== this._status) {
           return reject(`response status ${response.statusCode} does not match expected ${this._status}`, response);
         }
+        if (this._responseContentType) {
+          const contentType = (response.headers['content-type'] || '').split(';', 2)[0];
+          if (contentType !== this._responseContentType) {
+            return reject(`response content type ${contentType} does not match expected ${this._responseContentType}`,
+              response);
+          }
+        }
         return Promise.resolve(response);
       };
 
@@ -108,7 +116,12 @@ export default class Test {
       const expect = (response) => {
         if (this._expect) {
           return Promise.all(this._expect.map((func, i) =>
-            Promise.resolve(callFuncWithParamInjection(func, response, response.bodyJson, context)).then(passed => {
+            Promise.resolve(callFuncWithParamInjection(
+              func,
+              response,
+              response.bodyJson !== undefined ? response.bodyJson : response.body,
+              context
+            )).then(passed => {
               if (!passed) {
                 return reject(`expect test '${i}' failed`, response);
               }
@@ -123,7 +136,12 @@ export default class Test {
         if (this._save) {
           return Promise.all(Array.from(this._save.keys()).map(key =>
             Promise.resolve(
-              callFuncWithParamInjection(this._save.get(key), response, response.bodyJson, context)
+              callFuncWithParamInjection(
+                this._save.get(key),
+                response,
+                response.bodyJson !== undefined ? response.bodyJson : response.body,
+                context
+              )
             ).then(v => {
               if (context.has(key)) {
                 throw new Error(`The context already contains key '${key}'`);
@@ -143,10 +161,17 @@ export default class Test {
           'Content-Type': this._contentType || 'application/json',
           Cookie: context.get(group._session),
         },
-        body,
         resolveWithFullResponse: true,
         simple: false,
       };
+
+      if (this._contentType === 'application/x-www-form-urlencoded') {
+        options.form = body;
+      } else if (this._contentType === 'multipart/form-data') {
+        options.formData = body;
+      } else {
+        options.body = body;
+      }
 
       this._promise = rp(options)
         .then(res => status(res))
@@ -205,6 +230,12 @@ export default class Test {
   }
 
   form(data) {
+    this._contentType = 'application/x-www-form-urlencoded';
+    this._body = data;
+    return this;
+  }
+
+  formData(data) {
     this._contentType = 'multipart/form-data';
     const form = new FormData();
     Object.keys(data).forEach(key => form.set(key, data[key]));
@@ -228,6 +259,8 @@ export default class Test {
       this._expect.push(type);
     } else if (typeof type === 'number') {
       this._status = type;
+    } else if (type.indexOf('/') !== -1) {
+      this._responseContentType = type;
     } else {
       this._type = type;
     }

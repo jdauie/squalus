@@ -3,7 +3,7 @@ import webpackConfig from './webpack.config.babel';
 const obj = Object.assign({}, webpackConfig, {
   target: 'node',
   entry: {
-    squalus: './src/SqualusNode.js',
+    'squalus-node': './src/SqualusNode.js',
   },
 });
 
