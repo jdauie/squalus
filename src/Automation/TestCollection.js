@@ -7,6 +7,7 @@ export default class TestCollection {
   constructor(name) {
     this._name = name;
     this._groups = null;
+    this._cancel = false;
   }
 
   groups(groups) {
@@ -39,6 +40,12 @@ export default class TestCollection {
       console.log(`  ${testCount} passing`.green);
       console.log();
     }).catch(error => {
+      if (this._cancel) {
+        return;
+      }
+
+      this._cancel = true;
+
       if (!error._test) {
         console.log(error);
         return;

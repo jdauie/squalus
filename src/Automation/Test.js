@@ -179,6 +179,9 @@ export default class Test {
         .then(res => expect(res))
         .then(res => save(res))
         .then(() => {
+          if (collection._cancel) {
+            return Promise.reject();
+          }
           console.log('    %s %s %s %s',
             padRight(group._name, collection.getMaxGroupNameLength()).gray,
             padRight(this._method.toUpperCase(), 6).magenta,
