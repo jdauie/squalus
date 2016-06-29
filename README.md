@@ -36,7 +36,8 @@ Layer:
     name: string
     description: string?
   
-  Update[Any]:
+  Update:
+    ^: Any
     description?: string
     type?:
     params?:
