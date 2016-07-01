@@ -1,9 +1,7 @@
 import { collection } from '../../src/SqualusNode';
-import Auth from './Authentication/Auth';
-import Reminders from './Reminders/Reminders';
+import Test from './Test/Test';
 
 export default collection('all')
   .groups([
-    Auth,
-    Reminders,
+    Test,
   ]);
