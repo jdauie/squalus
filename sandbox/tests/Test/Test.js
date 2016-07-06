@@ -5,4 +5,7 @@ export default group('test')
     test('')
       .get('/test')
       .expect('Test.ObjectArrays'),
+
+    test('')
+      .get('/test2'),
   ]);

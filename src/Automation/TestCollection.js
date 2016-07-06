@@ -51,6 +51,18 @@ export default class TestCollection {
         return;
       }
 
+      let body = error._response.body;
+
+      if (error._response.statusCode === 500) {
+        const contentType = error._response.headers['content-type'];
+        if (contentType && contentType.split(';')[0].trim() === 'text/html') {
+          if (/<span><H1>Server Error in/i.test(body)) {
+            // ASP.NET unhandled error details
+            body = body.replace(/^[\s\S]*<!--([\s\S]*)-->\s*$/, '$1');
+          }
+        }
+      }
+
       const info = {
         reason: error._reason,
         group: error._group._name,
@@ -58,7 +70,7 @@ export default class TestCollection {
         href: error._response.request.uri.href,
         method: error._response.request.method.toUpperCase(),
         body: error._response.request.body,
-        response: error._response.body,
+        response: body,
         context: JSON.stringify(context),
       };
       const maxInfoNameLength = Object.keys(info).reduce((a, b) => (Math.max(a, b.length)), 0);
