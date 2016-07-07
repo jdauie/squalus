@@ -34,7 +34,7 @@ export default class TestGroup {
     if (!this._promise) {
       let when = root;
       if (this._requires) {
-        when = Promise.all(this._requires.map(g => g.execute(root, context)));
+        when = Promise.all(this._requires.map(g => g.execute(root, context)).concat([root]));
       }
       this._promise = new Promise((resolve, reject) => {
         if (this._parallel && !collection._sequential) {
