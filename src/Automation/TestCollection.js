@@ -1,7 +1,8 @@
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
 
+// colors is imported for the side effects
 import colors from 'colors';
-import http from 'http';
+import topoSort from '../TopoSort';
 
 export default class TestCollection {
 
@@ -9,13 +10,7 @@ export default class TestCollection {
     this._name = name;
     this._groups = null;
     this._cancel = false;
-    this._pool = new http.Agent();
-
-    if (options) {
-      if (options.maxSockets) {
-        this._pool.maxSockets = options.maxSockets;
-      }
-    }
+    this._sequential = !!((options || {}).sequential);
   }
 
   groups(groups) {
@@ -31,7 +26,7 @@ export default class TestCollection {
   }
 
   execute(initial) {
-    const root = Promise.resolve();
+    let root = Promise.resolve();
     const context = new Map();
     if (initial) {
       Object.keys(initial).forEach(k => context.set(k, initial[k]));
@@ -43,7 +38,18 @@ export default class TestCollection {
     console.log(`  collection [${this._name.green}]`);
     console.log();
 
-    return Promise.all(this._groups.map(g => g.execute(context, this, root))).then(() => {
+    if (this._sequential) {
+      this._groups = Array.from(topoSort(this._groups, g => g._name, g =>
+        (g._requires ? g._requires.map(r => r._name) : null)
+      ).values());
+    }
+
+    return Promise.all(this._groups.map((g, i, a) => {
+      if (this._sequential && i > 0) {
+        root = a[i - 1].execute();
+      }
+      return g.execute(context, this, root);
+    })).then(() => {
       console.log();
       console.log(`  ${testCount} passing`.green);
       console.log();

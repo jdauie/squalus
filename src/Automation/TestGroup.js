@@ -37,7 +37,7 @@ export default class TestGroup {
         when = Promise.all(this._requires.map(g => g.execute(root, context)));
       }
       this._promise = new Promise((resolve, reject) => {
-        if (this._parallel) {
+        if (this._parallel && !collection._sequential) {
           when.then(() => {
             Promise.all(this._tests.map(t => t.execute(context, this, collection))).then(resolve, reject);
           });

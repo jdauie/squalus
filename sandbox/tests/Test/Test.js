@@ -1,7 +1,7 @@
 import { group, test } from '../../../src/SqualusNode';
 
 export default group('test')
-  //.parallel()
+  .parallel()
   .tests([
     test('')
       .get('/test/ObjectScalars')
@@ -31,7 +31,7 @@ export default group('test')
       .get('/test/ObjectKnownInheritanceArray')
       .expect('Test.ObjectKnownInheritanceArray'),
 
-    test('')
-      .get('/test/ObjectAll')
-      .expect('Test.ObjectAll'),
+    // test('')
+    //   .get('/test/ObjectAll')
+    //   .expect('Test.ObjectAll'),
   ]);
