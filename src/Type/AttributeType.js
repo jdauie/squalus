@@ -7,6 +7,10 @@ export default class AttributeType {
     this._type = type;
     this._required = required;
     this._included = false;
+
+    if (this._name.endsWith('?')) {
+      console.log(this);
+    }
   }
 
   name() {

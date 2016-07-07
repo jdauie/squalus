@@ -101,11 +101,12 @@ export default class Test {
           if (!responseType) {
             return reject(`failed to create response type ${this._type}`, response);
           }
-          const json = JSON.parse(response.body);
-          response.bodyJson = json;// eslint-disable-line no-param-reassign
           try {
+            const json = JSON.parse(response.body);
+            response.bodyJson = json;// eslint-disable-line no-param-reassign
             responseType.validate(json, 'body');
           } catch (e) {
+            console.log(e);
             return reject(e, response);
           }
           return Promise.resolve(response);

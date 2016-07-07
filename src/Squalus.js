@@ -222,7 +222,7 @@ function parseRoot(root) {
 }
 
 function createAttrFromName(name, type) {
-  return new AttributeType(name.trim('?'), type.clone(), !name.endsWith('?'));
+  return new AttributeType(name.replace(/\?$/, ''), type.clone(), !name.endsWith('?'));
 }
 
 function stripOuterParens(array) {

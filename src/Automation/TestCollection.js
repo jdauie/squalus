@@ -1,13 +1,21 @@
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
 
 import colors from 'colors';
+import http from 'http';
 
 export default class TestCollection {
 
-  constructor(name) {
+  constructor(name, options) {
     this._name = name;
     this._groups = null;
     this._cancel = false;
+    this._pool = new http.Agent();
+
+    if (options) {
+      if (options.maxSockets) {
+        this._pool.maxSockets = options.maxSockets;
+      }
+    }
   }
 
   groups(groups) {
@@ -57,7 +65,7 @@ export default class TestCollection {
         const contentType = error._response.headers['content-type'];
         if (contentType && contentType.split(';')[0].trim() === 'text/html') {
           if (/<span><H1>Server Error in/i.test(body)) {
-            // ASP.NET unhandled error details
+            // ASP.NET unhandled error trace
             body = body.replace(/^[\s\S]*<!--([\s\S]*)-->\s*$/, '$1');
           }
         }

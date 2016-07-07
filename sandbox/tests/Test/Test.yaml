@@ -45,7 +45,9 @@ Test:
     FieldKey: string{bar}
     FieldOther: datetime
 
-  ObjectAny: ObjectAnyBranch1|ObjectAnyBranch1
+  ObjectAny: ObjectAnyBranch1|ObjectAnyBranch2
+
+  ObjectAnyArray: ObjectAny[]
 
   ObjectAnyInheritanceParent:
     Id: guid
@@ -66,7 +68,7 @@ Test:
 
   MapStringObject: string => ObjectAnyInheritance
 
-  Array: ObjectMultipleInheritance[]
+  ObjectMultipleInheritanceArray: ObjectMultipleInheritance[]
 
   ObjectKnown:
     Setting1: bool
@@ -79,11 +81,13 @@ Test:
     ^: ObjectKnownAny
     Hive: string{internal,global,user}
 
+  ObjectKnownInheritanceArray: ObjectKnownInheritance[]
+
   ObjectAll:
     Scalars: ObjectScalars
     Arrays:
       First: ObjectArrays
-      Second: Array
+      Second: ObjectMultipleInheritanceArray
     Intermediate: ObjectAnyBranch1
     Map1: MapStringString
     Map2: MapStringObject

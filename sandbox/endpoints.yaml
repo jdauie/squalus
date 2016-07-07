@@ -1,29 +1,4 @@
 ---
-- url: "api/reminders"
-  method: POST
-  data: Reminder.Create
-
-- url: "api/reminders/{id}"
-  method: PUT
-  params:
-    id: int
-  data: Reminder.Update
-
-- url: "api/reminders/{id}"
-  params:
-    id: int
-  method: DELETE
-
-- url: "api/reminders"
-  method: GET
-  data: Reminder.Get[]
-
-- url: "api/reminders/{id}"
-  params:
-    id: int
-  method: GET
-  data: Reminder.Get
-
 - url: "api/test"
   method: POST
   data: Test.ObjectAll

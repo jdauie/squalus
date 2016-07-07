@@ -50,8 +50,8 @@ class SqualusNode extends Squalus {
   }
 }
 
-function collection(name) {
-  return new TestCollection(name);
+function collection(name, options) {
+  return new TestCollection(name, options);
 }
 
 function group(name) {

@@ -61,9 +61,7 @@ export default class ObjectType {
           }
           throw new Error(`${path}.${key} is required`);
         }
-      }
-
-      if (!attr.validate(value[key], `${path}.${key}`, returnOnly)) {
+      } else if (!attr.validate(value[key], `${path}.${key}`, returnOnly)) {
         return false;
       }
     }
