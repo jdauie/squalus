@@ -40,11 +40,11 @@ export default class ObjectType {
     });
   }
 
-  validate(value, path, returnOnly) {
+  validate(value, path, silent, context) {
     // todo: filter/warn on unrecognized attributes
 
-    if (typeof value !== 'object') {
-      if (returnOnly) {
+    if (typeof value !== 'object' || value === null) {
+      if (silent) {
         return false;
       }
       throw new Error(`${path} must be an object`);
@@ -56,13 +56,21 @@ export default class ObjectType {
 
       if (value[key] === undefined) {
         if (attr.required()) {
-          if (returnOnly) {
+          if (silent) {
             return false;
           }
           throw new Error(`${path}.${key} is required`);
         }
-      } else if (!attr.validate(value[key], `${path}.${key}`, returnOnly)) {
+      } else if (!attr.validate(value[key], `${path}.${key}`, silent, context)) {
         return false;
+      }
+    }
+
+    if (context._throwUnknownObjectAttributes) {
+      const allowedKeys = new Set(this._attributes.map(a => a.name()));
+      const diff = Object.keys(value).filter(x => !allowedKeys.has(x));
+      if (diff.length > 0) {
+        throw new Error(`Unknown attributes \`${diff.join(',')}\` not allowed in \`${path}\``);
       }
     }
 
@@ -71,5 +79,12 @@ export default class ObjectType {
 
   clear() {
     this._attributes.forEach(attr => attr.clear());
+  }
+
+  toJSON() {
+    return {
+      _: 'object',
+      attributes: this._attributes,
+    };
   }
 }

@@ -39,15 +39,15 @@ export default class ArrayType {
     }
   }
 
-  validate(value, path, returnOnly) {
+  validate(value, path, silent, context) {
     if (!Array.isArray(value)) {
-      if (returnOnly) {
+      if (silent) {
         return false;
       }
       throw new Error(`${path} must be an array`);
     }
 
-    return value.every((item, i) => this._type.validate(item, `${path}[${i}]`, returnOnly));
+    return value.every((item, i) => this._type.validate(item, `${path}[${i}]`, silent, context));
   }
 
   value() {
@@ -78,6 +78,13 @@ export default class ArrayType {
     for (let j = i; j < this._body.children.length; j++) {
       this._body.children[j].children[1].textContent = `[${j}]`;
     }
+  }
+
+  toJSON() {
+    return {
+      _: 'array',
+      type: this._type,
+    };
   }
 
   static onClickAdd(event) {

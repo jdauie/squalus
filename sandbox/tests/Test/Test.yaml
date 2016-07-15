@@ -93,3 +93,13 @@ Test:
     Map2: MapStringObject
     Known: ObjectKnownInheritance[]
     Nested: (string => (int{2,4-9}|bool|string?))?[]?
+
+  Nested1: int{2,4-9}|bool|string?
+  Nested2: string => Nested1
+  Nested3: Nested2?
+  Nested4: Nested3[]
+  Nested5: Nested4?
+
+  ObjectAll2:
+    ^: ObjectAll
+    Nested: Nested5

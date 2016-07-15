@@ -3,6 +3,8 @@
 // colors is imported for the side effects
 import colors from 'colors';
 import topoSort from '../TopoSort';
+import TestError from './TestError';
+import ValidationContext from '../ValidationContext';
 
 export default class TestCollection {
 
@@ -11,6 +13,9 @@ export default class TestCollection {
     this._groups = null;
     this._cancel = false;
     this._sequential = !!((options || {}).sequential);
+    this._validationContext = new ValidationContext(
+      !!((options || {}).throwUnknownObjectAttributes)
+    );
   }
 
   groups(groups) {
@@ -26,6 +31,8 @@ export default class TestCollection {
   }
 
   execute(initial) {
+    const startTime = Date.now();
+
     let root = Promise.resolve();
     const context = new Map();
     if (initial) {
@@ -34,15 +41,21 @@ export default class TestCollection {
 
     const testCount = this._groups.reduce((a, b) => a + b._tests.length, 0);
 
+    const options = [];
+    if (this._sequential) {
+      options.push('sequential');
+    }
+    if (this._validationContext._throwUnknownObjectAttributes) {
+      options.push('throwUnknownObjectAttributes');
+    }
+
     console.log();
-    console.log(`  collection [${this._name.green}]`);
+    console.log('  collection [%s] %s', this._name.green, options.length > 0 ? `(${options.join(',')})` : '');
     console.log();
 
-    if (this._sequential) {
-      this._groups = Array.from(topoSort(this._groups, g => g._name, g =>
-        (g._requires ? g._requires.map(r => r._name) : null)
-      ).values());
-    }
+    this._groups = Array.from(topoSort(this._groups, g => g._name, g =>
+      (g._requires ? g._requires.map(r => r._name) : null)
+    ).values());
 
     return Promise.all(this._groups.map((g, i, a) => {
       if (this._sequential && i > 0) {
@@ -51,7 +64,10 @@ export default class TestCollection {
       return g.execute(context, this, root);
     })).then(() => {
       console.log();
-      console.log(`  ${testCount} passing`.green);
+      console.log('  %s after %s',
+        `${testCount} passing`.green,
+        `${(Date.now() - startTime)} ms`.magenta
+      );
       console.log();
     }).catch(error => {
       if (this._cancel) {
@@ -60,44 +76,11 @@ export default class TestCollection {
 
       this._cancel = true;
 
-      if (!error._test) {
+      if (error instanceof TestError) {
+        error.log(context, startTime);
+      } else {
         console.log(error);
-        return;
       }
-
-      let body = error._response.body;
-
-      if (error._response.statusCode === 500) {
-        const contentType = error._response.headers['content-type'];
-        if (contentType && contentType.split(';')[0].trim() === 'text/html') {
-          if (/<span><H1>Server Error in/i.test(body)) {
-            // ASP.NET unhandled error trace
-            body = body.replace(/^[\s\S]*<!--([\s\S]*)-->\s*$/, '$1');
-          }
-        }
-      }
-
-      const info = {
-        reason: error._reason,
-        group: error._group._name,
-        test: error._test._name,
-        href: error._response.request.uri.href,
-        method: error._response.request.method.toUpperCase(),
-        body: error._response.request.body,
-        response: body,
-        context: JSON.stringify(context),
-      };
-      const maxInfoNameLength = Object.keys(info).reduce((a, b) => (Math.max(a, b.length)), 0);
-
-      console.log();
-      console.log('  failed'.red);
-      console.log();
-      Object.keys(info).forEach(k => console.log('    %s%s : %s',
-        k.yellow,
-        ' '.repeat(maxInfoNameLength - k.length),
-        info[k])
-      );
-      console.log();
     });
   }
 }

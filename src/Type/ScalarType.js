@@ -104,6 +104,13 @@ export default class ScalarType {
     }
   }
 
+  toJSON() {
+    return {
+      _: 'scalar',
+      type: this._type,
+    };
+  }
+
   static create(type, values) {
     return new (implementations.get(type) || ScalarType)(type, values);
   }

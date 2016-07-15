@@ -63,8 +63,6 @@ squalus.execute(
       Layers,
     ]),
   path.join(__dirname, '/All.context.json')
-).catch(error =>
-  console.log(error)
 );
 ```
 

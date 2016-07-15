@@ -104,9 +104,8 @@ export default class Test {
           try {
             const json = JSON.parse(response.body);
             response.bodyJson = json;// eslint-disable-line no-param-reassign
-            responseType.validate(json, 'body');
+            responseType.validate(json, 'body', false, collection._validationContext);
           } catch (e) {
-            console.log(e);
             return reject(e, response);
           }
           return Promise.resolve(response);

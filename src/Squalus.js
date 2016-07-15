@@ -7,7 +7,6 @@ import ArrayType from './Type/ArrayType';
 import AttributeType from './Type/AttributeType';
 import ObjectType from './Type/ObjectType';
 import ScalarType from './Type/ScalarType';
-import NullableType from './Type/NullableType';
 import MapType from './Type/MapType';
 
 import BoolScalarType from './Type/Scalar/BoolScalarType';
@@ -224,20 +223,19 @@ function buildType(def, scope) {
 
     const branches = splitArray(tokens, '|');
     if (branches.length > 1) {
+      if (branches.length !== new Set(branches).size) {
+        throw new Error('duplicate types in branch list');
+      }
       const branchMap = new Map();
       branches.forEach(branch => {
         branchMap.set(branch, buildType(scopify(branch.join(''), scope)));
       });
-      return new BranchType(branchMap);
+      return BranchType.create(branchMap);
     }
 
     const map = splitArray(tokens, '=>');
     if (map.length > 1) {
       return new MapType(buildType(map[0].join(''), scope), buildType(map[1].join(''), scope));
-    }
-
-    if (tokens[tokens.length - 1] === '?') {
-      return new NullableType(buildType(tokens.slice(0, tokens.length - 1).join(''), scope));
     }
 
     if (tokens[tokens.length - 1] === '[]') {

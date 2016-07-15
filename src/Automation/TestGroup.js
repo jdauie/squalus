@@ -32,6 +32,10 @@ export default class TestGroup {
 
   execute(context, collection, root) {
     if (!this._promise) {
+      if (!collection || !root) {
+        throw new Error('uninitialized promise');
+      }
+
       let when = root;
       if (this._requires) {
         when = Promise.all(this._requires.map(g => g.execute(root, context)).concat([root]));

@@ -1,14 +1,16 @@
 import { default as $ } from './../Tag';
+import NullableType from './NullableType';
+import NullScalarType from './Scalar/NullScalarType';
 
 export default class BranchType {
 
   constructor(types) {
-    this._types = types;
-    this._node = null;
-
     if (types.size < 2) {
       throw new Error('degenerate branch type');
     }
+
+    this._types = types;
+    this._node = null;
   }
 
   get types() {
@@ -55,9 +57,9 @@ export default class BranchType {
     types[i].populate(data);
   }
 
-  validate(value, path, returnOnly) {
-    if (!Array.from(this._types.values()).some(type => type.validate(value, path, true))) {
-      if (returnOnly) {
+  validate(value, path, silent, context) {
+    if (!Array.from(this._types.values()).some(type => type.validate(value, path, true, context))) {
+      if (silent) {
         return false;
       }
       throw new Error(`${path} does not match any candidate`);
@@ -67,6 +69,13 @@ export default class BranchType {
 
   clear() {
     this._types.forEach(type => type.clear());
+  }
+
+  toJSON() {
+    return {
+      _: 'branch',
+      types: this._types,
+    };
   }
 
   static onChange(event) {
@@ -83,5 +92,15 @@ export default class BranchType {
       const event = new Event('change', { bubbles: true });
       elem.dispatchEvent(event);
     });
+  }
+
+  static create(types) {
+    if (types.size === 2) {
+      const nonNullTypes = Array.from(types.values()).filter(t => !(t instanceof NullScalarType));
+      if (nonNullTypes.length === 1) {
+        return new NullableType(nonNullTypes[0]);
+      }
+    }
+    return new BranchType(types);
   }
 }

@@ -31,7 +31,11 @@ export default group('test')
       .get('/test/ObjectKnownInheritanceArray')
       .expect('Test.ObjectKnownInheritanceArray'),
 
-    // test('')
-    //   .get('/test/ObjectAll')
-    //   .expect('Test.ObjectAll'),
+    test('')
+      .get('/test/ObjectAll')
+      .expect('Test.ObjectAll'),
+
+    test('')
+      .get('/test/ObjectAll')
+      .expect('Test.ObjectAll2'),
   ]);

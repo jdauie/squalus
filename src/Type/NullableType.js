@@ -24,8 +24,8 @@ export default class NullableType {
     return val;
   }
 
-  validate(value, path, returnOnly) {
-    return (value === null) || this._type.validate(value, path, returnOnly);
+  validate(value, path, silent, context) {
+    return (value === null) || this._type.validate(value, path, silent, context);
   }
 
   populate(data, path, types) {
@@ -34,5 +34,12 @@ export default class NullableType {
 
   clear() {
     this._type.clear();
+  }
+
+  toJSON() {
+    return {
+      _: 'nullable',
+      type: this._type,
+    };
   }
 }

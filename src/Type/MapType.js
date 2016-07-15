@@ -47,9 +47,9 @@ export default class MapType {
     });
   }
 
-  validate(value, path, returnOnly) {
-    if (typeof value !== 'object') {
-      if (returnOnly) {
+  validate(value, path, silent, context) {
+    if (typeof value !== 'object' || value === null) {
+      if (silent) {
         return false;
       }
       throw new Error(`${path} must be an object`);
@@ -59,17 +59,17 @@ export default class MapType {
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
 
-      if (!this._key.validate(key, `${path}[${key}]*`, returnOnly)) {
+      if (!this._key.validate(key, `${path}[${key}]*`, silent, context)) {
         return false;
       }
 
-      if (!this._type.validate(value[key], `${path}[${key}]`, returnOnly)) {
+      if (!this._type.validate(value[key], `${path}[${key}]`, silent, context)) {
         return false;
       }
     }
 
     if (this._required) {
-      if (!this._type.validate(value, path, returnOnly)) {
+      if (!this._type.validate(value, path, silent, context)) {
         return false;
       }
     }
@@ -110,5 +110,13 @@ export default class MapType {
   remove(i) {
     this._rows.splice(i, 1);
     this._body.children[i].remove();
+  }
+
+  toJSON() {
+    return {
+      _: 'map',
+      key: this._key,
+      type: this._type,
+    };
   }
 }

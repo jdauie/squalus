@@ -58,8 +58,8 @@ export default class AttributeType {
     this.update();
   }
 
-  validate(value, path, returnOnly) {
-    return this._type.validate(value, path, returnOnly);
+  validate(value, path, silent, context) {
+    return this._type.validate(value, path, silent, context);
   }
 
   clear() {
@@ -79,6 +79,14 @@ export default class AttributeType {
       this._node.children[1].classList.toggle('test-attr-toggle', !this._included);
       this._node.children[2].firstElementChild.classList.toggle('test-hidden', !this._included);
     }
+  }
+
+  toJSON() {
+    return {
+      _: 'attribute',
+      name: this._name,
+      type: this._type,
+    };
   }
 
   static onClickToggle(event) {
