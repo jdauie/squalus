@@ -53,6 +53,7 @@
     "gulp-mocha": "^2.2.0",
     "gulp-util": "^3.0.7",
     "mocha": "^2.4.5",
+    "promise-retry": "^1.1.0",
     "webpack": "^1.13.0",
     "webpack-dev-server": "^1.14.1",
     "webpack-node-externals": "^1.2.0"
