@@ -10,9 +10,10 @@ import fs from 'fs';
 const RequestError = requestPromiseErrors.RequestError;
 
 const rootDir = 'C:/tmp/scrape/recipes';
-const authHeader = 'Bearer P6k/U+2F1ECWIwpmI527pUM6CDKS71rBQLHc2r1GkZrkHgrwKadHn8zFifk+QeNlW7bMDibkfBj3mNVyFBaJ722BPud529q7ln0FSBlURFjzIm+JXu2boqr9QEv3yu6k';
+const authHeader = 'Bearer P6k/U+2F1ECWIwpmI527pUM6CDKS71rBz5B6jOYQD00FLcof6S6CwYJlFlrzmcq/8qjatKKsIjQ0BoxwaNBRXffTy9+tjf1OgcWp7spB1zS9Lsq4pqQwFTSGsbMikHZr';
 
 const categories = {
+  // 14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
   76: 'appetizers-and-snacks',
   77: 'drinks',
   78: 'breakfast-and-brunch',
@@ -37,48 +38,8 @@ const categories = {
   17567: 'ingredients',
 };
 
-// const onResolve = () => {
-//   if (!cards.length) {
-//     resolve(recipes);
-//   }
-//   return rp({
-//     uri: `http://allrecipes.com/recipe/${c.id}`,
-//     resolveWithFullResponse: true,
-//   }).then(response => {
-//     const $ = cheerio.load(response.body);
-//
-//     try {
-//       const ingredients = $("li.checkList__line span.recipe-ingred_txt[itemprop='ingredients']", '.recipe-ingredients')
-//         .contents().toArray().map(n => n.data);
-//       const directions = $("ol[itemProp='recipeInstructions'] span.recipe-directions__list--item")
-//         .contents().toArray().map(n => n.data);
-//       const calories = $('span.calorie-count').children().first().text();
-//       const prepTime = $("time[itemProp='prepTime']").attr('datetime');
-//       const totalTime = $("time[itemProp='totalTime']").attr('datetime');
-//
-//       recipes.push(Object.assign(recipe, {
-//         ingredients,
-//         directions,
-//         calories,
-//         prepTime: prepTime ? prepTime.substr(2) : null,
-//         totalTime: totalTime ? totalTime.substr(2) : null,
-//       }));
-//     } catch(e) {
-//       fs.writeFile(`c:/tmp/page-${c.id}.html`, response.body);
-//       // throw e;
-//     }
-//
-//     return Promise.resolve();
-//   }).then(() => {
-//     return rp({
-//       uri: `http://images.media-allrecipes.com/userphotos/600x600/${imageFile}`,
-//       resolveWithFullResponse: true,
-//       encoding: null,
-//     }).then(response => {
-//       fs.writeFile(path.join(rootDir, imageFile), response.body);
-//     });
-//   }).then(onResolve, reject);
-// };
+let detailCount = 0;
+let imageCount = 0;
 
 const rpr = req =>
   promiseRetry(
@@ -91,7 +52,7 @@ const rpr = req =>
           throw e;
         }),
     {
-      retries: 4,
+      retries: 10,
       minTimeout: 10,
       maxTimeout: 1000,
       randomize: true,
@@ -99,12 +60,27 @@ const rpr = req =>
   );
 
 function getPage(categoryId, pageNumber) {
-  // console.log(`try page ${pageNumber}`);
   return rpr({
     uri: `https://apps.allrecipes.com/v1/assets/hub-feed?id=${categoryId}&pageNumber=${pageNumber}&isSponsored=true&sortType=p`,
     headers: {
       Authorization: authHeader,
     },
+    pool: { maxSockets: 10 },
+  });
+}
+
+function getDetail(item) {
+  return rpr({
+    uri: `http://allrecipes.com/recipe/${item.id}`,
+    pool: { maxSockets: 10 },
+  });
+}
+
+function getImage(item) {
+  return rpr({
+    uri: `http://images.media-allrecipes.com/userphotos/600x600/${item.image}`,
+    resolveWithFullResponse: true,
+    encoding: null,
     pool: { maxSockets: 10 },
   });
 }
@@ -162,6 +138,7 @@ function getItems(categoryId) {
     allCards.filter(c => c.itemType === 'Recipe').forEach(card => {
       uniqueCards.set(card.id, card);
     });
+
     console.log(`[${categories[categoryId]}] ${uniqueCards.size} items`);
 
     return Promise.resolve(Array.from(uniqueCards.values()).map(card => ({
@@ -175,11 +152,72 @@ function getItems(categoryId) {
   });
 }
 
+function getDetails(items) {
+  return Promise.all(items.map(item =>
+    getDetail(item).then(body => {
+      const $ = cheerio.load(body);
+
+      try {
+        const ingredients = $("li.checkList__line span.recipe-ingred_txt[itemprop='ingredients']", '.recipe-ingredients')
+          .contents().toArray().map(n => n.data);
+        const directions = $("ol[itemProp='recipeInstructions'] span.recipe-directions__list--item")
+          .contents().toArray().map(n => n.data);
+        const calories = $('span.calorie-count').children().first().text();
+        const prepTime = $("time[itemProp='prepTime']").attr('datetime');
+        const totalTime = $("time[itemProp='totalTime']").attr('datetime');
+
+        Object.assign(item, {
+          ingredients,
+          directions,
+          calories,
+          prepTime: prepTime ? prepTime.substr(2) : null,
+          totalTime: totalTime ? totalTime.substr(2) : null,
+        });
+      } catch (e) {
+        fs.writeFile(`c:/tmp/page-${item.id}.html`, body);
+      }
+
+      process.stdout.write(`  ${++detailCount}\r`);
+
+      return Promise.resolve(item);
+    })
+  ));
+}
+
+function getImages(items) {
+  return Promise.all(items.map(item =>
+    getImage(item).then(response => {
+      if (item.image !== '44555.png') {
+        fs.writeFile(path.join(rootDir, item.image), response.body);
+      }
+
+      process.stdout.write(`  ${++imageCount}\r`);
+    })
+  ));
+}
+
 export default function () {
   return Promise.all(Object.keys(categories).map(categoryId =>
     getItems(categoryId)
-  ))
-    .then(items => {
-      console.log(items.map(x => x.length).reduce((a, b) => a + b));
-    });
+  )).then(groups => {
+    const items = [].concat.apply([], groups);
+
+    console.log();
+    console.log(`total items: ${items.length}`);
+    console.log();
+    console.log('details...');
+
+    return getDetails(items);
+  }).then(items => {
+    fs.writeFile(path.join(rootDir, 'items.json'), JSON.stringify(items));
+
+    console.log('images...');
+
+    getImages(items);
+
+    const failedDetailsParseCount = items.filter(item => item.ingredients === undefined).length;
+    if (failedDetailsParseCount) {
+      console.log(`failed to retrieve details for ${failedDetailsParseCount}`);
+    }
+  });
 }
