@@ -9,7 +9,7 @@
     "build": "npm run lint && gulp webpack:build",
     "dev": "gulp webpack:server",
     "api": "gulp test:api",
-    "scrape:recipes": "gulp scrape:recipes"
+    "scrape:recipes": "node --max-old-space-size=8000 ./node_modules/gulp/bin/gulp.js scrape:recipes"
   },
   "repository": {
     "type": "git",

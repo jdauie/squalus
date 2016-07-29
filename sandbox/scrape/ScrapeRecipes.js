@@ -13,30 +13,36 @@ const rootDir = 'C:/tmp/scrape/recipes';
 const authHeader = 'Bearer P6k/U+2F1ECWIwpmI527pUM6CDKS71rBz5B6jOYQD00FLcof6S6CwYJlFlrzmcq/8qjatKKsIjQ0BoxwaNBRXffTy9+tjf1OgcWp7spB1zS9Lsq4pqQwFTSGsbMikHZr';
 
 const categories = {
-  // 14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
-  76: 'appetizers-and-snacks',
-  77: 'drinks',
-  78: 'breakfast-and-brunch',
-  79: 'desserts',
-  80: 'main-dish',
-  81: 'side-dish',
-  82: 'trusted-brands-recipes-and-tips',
-  84: 'healthy-recipes',
-  85: 'holidays-and-events',
-  86: 'world-cuisine',
-  88: 'bbq-grilling',
-  92: 'meat-and-poultry',
-  93: 'seafood',
-  94: 'soups-stews-and-chili',
-  95: 'pasta-and-noodles',
-  96: 'salad',
-  236: 'us-recipes',
-  1116: 'fruits-and-vegetables',
-  1642: 'everyday-cooking',
-  17561: 'lunch',
-  17562: 'dinner',
-  17567: 'ingredients',
+  14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
+  // 76: 'appetizers-and-snacks',
+  // 77: 'drinks',
+  // 78: 'breakfast-and-brunch',
+  // 79: 'desserts',
+  // 80: 'main-dish',
+  // 81: 'side-dish',
+  // 82: 'trusted-brands-recipes-and-tips',
+  // 84: 'healthy-recipes',
+  // 85: 'holidays-and-events',
+  // 86: 'world-cuisine',
+  // 88: 'bbq-grilling',
+  // 92: 'meat-and-poultry',
+  // 93: 'seafood',
+  // 94: 'soups-stews-and-chili',
+  // 95: 'pasta-and-noodles',
+  // 96: 'salad',
+  // 236: 'us-recipes',
+  // 1116: 'fruits-and-vegetables',
+  // 1642: 'everyday-cooking',
+  // 17561: 'lunch',
+  // 17562: 'dinner',
+  // 17567: 'ingredients',
 };
+
+const dirChunkSize = 1000;
+const batchChunkSize = 10;
+
+const completed = [];
+let unprocessed = null;
 
 let detailCount = 0;
 let imageCount = 0;
@@ -141,14 +147,18 @@ function getItems(categoryId) {
 
     console.log(`[${categories[categoryId]}] ${uniqueCards.size} items`);
 
-    return Promise.resolve(Array.from(uniqueCards.values()).map(card => ({
-      id: card.id,
-      category: categories[categoryId],
-      title: card.title,
-      description: card.description,
-      cook: card.cook.displayName,
-      image: card.imageUrl.split('/').pop(),
-    })));
+    return Promise.resolve(Array.from(uniqueCards.values()).map(card => {
+      const image = card.imageUrl.split('/').pop();
+      return Object.assign({
+        id: card.id,
+        category: categories[categoryId],
+        title: card.title,
+        description: card.description,
+        cook: card.cook.displayName,
+      }, image !== '44555.png' ? {
+        image,
+      } : {});
+    }));
   });
 }
 
@@ -174,7 +184,8 @@ function getDetails(items) {
           totalTime: totalTime ? totalTime.substr(2) : null,
         });
       } catch (e) {
-        fs.writeFile(`c:/tmp/page-${item.id}.html`, body);
+        // fs.writeFile(`c:/tmp/page-${item.id}.html`, body);
+        Promise.resolve(null);
       }
 
       process.stdout.write(`  ${++detailCount}\r`);
@@ -185,39 +196,65 @@ function getDetails(items) {
 }
 
 function getImages(items) {
-  return Promise.all(items.map(item =>
-    getImage(item).then(response => {
-      if (item.image !== '44555.png') {
-        fs.writeFile(path.join(rootDir, item.image), response.body);
-      }
+  return Promise.all(items.map(item => {
+    if (item.image) {
+      return getImage(item).then(response => {
+        fs.writeFile(path.join(rootDir, `chunk-${item.id % dirChunkSize}`, item.image), response.body);
+      });
+    }
+    return Promise.resolve(item);
+  }));
+}
 
-      process.stdout.write(`  ${++imageCount}\r`);
-    })
-  ));
+function processChunk() {
+  const chunk = [];
+  while (chunk.length < batchChunkSize && unprocessed.length) {
+    chunk.push(unprocessed[unprocessed.length - 1].pop());
+    if (!unprocessed[unprocessed.length - 1].length) {
+      unprocessed.pop();
+    }
+  }
+  getDetails(chunk).then(items => {
+    getImages(items);
+  }).then(items => {
+    items.forEach(item =>
+      fs.writeFile(path.join(rootDir, `chunk-${item.id % dirChunkSize}`, `item-${item.id}.json`), JSON.stringify(item))
+    );
+    return Promise.resolve();
+  });
 }
 
 export default function () {
   return Promise.all(Object.keys(categories).map(categoryId =>
     getItems(categoryId)
   )).then(groups => {
-    const items = [].concat.apply([], groups);
-
-    console.log();
-    console.log(`total items: ${items.length}`);
-    console.log();
-    console.log('details...');
-
-    return getDetails(items);
-  }).then(items => {
-    fs.writeFile(path.join(rootDir, 'items.json'), JSON.stringify(items));
-
-    console.log('images...');
-
-    getImages(items);
-
-    const failedDetailsParseCount = items.filter(item => item.ingredients === undefined).length;
-    if (failedDetailsParseCount) {
-      console.log(`failed to retrieve details for ${failedDetailsParseCount}`);
-    }
+    unprocessed = groups;
+    return processChunk();
   });
 }
+
+// export default function () {
+//   return Promise.all(Object.keys(categories).map(categoryId =>
+//     getItems(categoryId)
+//   )).then(groups => {
+//     const items = [].concat.apply([], groups);
+//
+//     console.log();
+//     console.log(`total items: ${items.length}`);
+//     console.log();
+//     console.log('details...');
+//
+//     return getDetails(items);
+//   }).then(items => {
+//     fs.writeFile(path.join(rootDir, 'items.json'), JSON.stringify(items));
+//
+//     console.log('images...');
+//
+//     getImages(items);
+//
+//     const failedDetailsParseCount = items.filter(item => item.ingredients === undefined).length;
+//     if (failedDetailsParseCount) {
+//       console.log(`failed to retrieve details for ${failedDetailsParseCount}`);
+//     }
+//   });
+// }
