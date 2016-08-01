@@ -10,42 +10,39 @@ import fs from 'fs';
 const RequestError = requestPromiseErrors.RequestError;
 
 const rootDir = 'C:/tmp/scrape/recipes';
-const authHeader = 'Bearer P6k/U+2F1ECWIwpmI527pUM6CDKS71rBz5B6jOYQD00FLcof6S6CwYJlFlrzmcq/8qjatKKsIjQ0BoxwaNBRXffTy9+tjf1OgcWp7spB1zS9Lsq4pqQwFTSGsbMikHZr';
 
 const categories = {
-  14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
-  // 76: 'appetizers-and-snacks',
-  // 77: 'drinks',
-  // 78: 'breakfast-and-brunch',
-  // 79: 'desserts',
-  // 80: 'main-dish',
-  // 81: 'side-dish',
-  // 82: 'trusted-brands-recipes-and-tips',
-  // 84: 'healthy-recipes',
-  // 85: 'holidays-and-events',
-  // 86: 'world-cuisine',
-  // 88: 'bbq-grilling',
-  // 92: 'meat-and-poultry',
-  // 93: 'seafood',
-  // 94: 'soups-stews-and-chili',
-  // 95: 'pasta-and-noodles',
-  // 96: 'salad',
-  // 236: 'us-recipes',
-  // 1116: 'fruits-and-vegetables',
-  // 1642: 'everyday-cooking',
-  // 17561: 'lunch',
-  // 17562: 'dinner',
-  // 17567: 'ingredients',
+  // 14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
+  76: 'appetizers-and-snacks',
+  77: 'drinks',
+  78: 'breakfast-and-brunch',
+  79: 'desserts',
+  80: 'main-dish',
+  81: 'side-dish',
+  82: 'trusted-brands-recipes-and-tips',
+  84: 'healthy-recipes',
+  85: 'holidays-and-events',
+  86: 'world-cuisine',
+  88: 'bbq-grilling',
+  92: 'meat-and-poultry',
+  93: 'seafood',
+  94: 'soups-stews-and-chili',
+  95: 'pasta-and-noodles',
+  96: 'salad',
+  236: 'us-recipes',
+  1116: 'fruits-and-vegetables',
+  1642: 'everyday-cooking',
+  17561: 'lunch',
+  17562: 'dinner',
+  17567: 'ingredients',
 };
 
 const dirChunkSize = 1000;
-const batchChunkSize = 10;
+const batchChunkSize = 1;
 
-const completed = [];
 let unprocessed = null;
 
 let detailCount = 0;
-let imageCount = 0;
 
 const rpr = req =>
   promiseRetry(
@@ -65,20 +62,18 @@ const rpr = req =>
     }
   );
 
-function getPage(categoryId, pageNumber) {
+function getPage(categoryId, pageNumber, authHeader) {
   return rpr({
     uri: `https://apps.allrecipes.com/v1/assets/hub-feed?id=${categoryId}&pageNumber=${pageNumber}&isSponsored=true&sortType=p`,
     headers: {
       Authorization: authHeader,
     },
-    pool: { maxSockets: 10 },
   });
 }
 
 function getDetail(item) {
   return rpr({
     uri: `http://allrecipes.com/recipe/${item.id}`,
-    pool: { maxSockets: 10 },
   });
 }
 
@@ -87,11 +82,10 @@ function getImage(item) {
     uri: `http://images.media-allrecipes.com/userphotos/600x600/${item.image}`,
     resolveWithFullResponse: true,
     encoding: null,
-    pool: { maxSockets: 10 },
   });
 }
 
-function getItems(categoryId) {
+function getItems(categoryId, authHeader) {
   const skip = new Set();
   const allCards = [];
 
@@ -104,7 +98,7 @@ function getItems(categoryId) {
         return Promise.resolve(page);
       }
 
-      return getPage(categoryId, page).then(body => {
+      return getPage(categoryId, page, authHeader).then(body => {
         const cards = JSON.parse(body).cards;
         if (cards.length) {
           skip.add(page);
@@ -118,7 +112,7 @@ function getItems(categoryId) {
     // expand search space
     const page = lower * 2;
 
-    return getPage(categoryId, page).then(body => {
+    return getPage(categoryId, page, authHeader).then(body => {
       const cards = JSON.parse(body).cards;
       if (cards.length) {
         skip.add(page);
@@ -135,7 +129,7 @@ function getItems(categoryId) {
     return Promise.all(Array.from(new Array(last))
       .map((e, i) => i + 1)
       .filter(p => !skip.has(p))
-      .map(p => getPage(categoryId, p).then(body => {
+      .map(p => getPage(categoryId, p, authHeader).then(body => {
         allCards.push.apply(allCards, JSON.parse(body).cards);
       })));
   }).then(() => {
@@ -199,7 +193,12 @@ function getImages(items) {
   return Promise.all(items.map(item => {
     if (item.image) {
       return getImage(item).then(response => {
-        fs.writeFile(path.join(rootDir, `chunk-${item.id % dirChunkSize}`, item.image), response.body);
+        const dir = path.join(rootDir, `chunk-${item.id % dirChunkSize}`);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir);
+        }
+        fs.writeFile(path.join(dir, item.image), response.body);
+        return item;
       });
     }
     return Promise.resolve(item);
@@ -214,9 +213,9 @@ function processChunk() {
       unprocessed.pop();
     }
   }
-  getDetails(chunk).then(items => {
-    getImages(items);
-  }).then(items => {
+  return getDetails(chunk).then(items =>
+    getImages(items)
+  ).then(items => {
     items.forEach(item =>
       fs.writeFile(path.join(rootDir, `chunk-${item.id % dirChunkSize}`, `item-${item.id}.json`), JSON.stringify(item))
     );
@@ -225,36 +224,19 @@ function processChunk() {
 }
 
 export default function () {
-  return Promise.all(Object.keys(categories).map(categoryId =>
-    getItems(categoryId)
-  )).then(groups => {
-    unprocessed = groups;
-    return processChunk();
+  return rpr({
+    uri: 'http://allrecipes.com',
+    resolveWithFullResponse: true,
+  }).then(response => {
+    const authToken = response.headers['set-cookie'].find(c => c.startsWith('ARToken=')).split(';')[0].split('=')[1];
+    const authHeader = `Bearer ${authToken}`;
+
+    return Promise.all(Object.keys(categories).map(categoryId =>
+      getItems(categoryId, authHeader)
+    )).then(groups => {
+      console.log(`${groups.map(g => g.length).reduce((a, b) => a + b)} total items`);
+      unprocessed = groups;
+      return processChunk();
+    });
   });
 }
-
-// export default function () {
-//   return Promise.all(Object.keys(categories).map(categoryId =>
-//     getItems(categoryId)
-//   )).then(groups => {
-//     const items = [].concat.apply([], groups);
-//
-//     console.log();
-//     console.log(`total items: ${items.length}`);
-//     console.log();
-//     console.log('details...');
-//
-//     return getDetails(items);
-//   }).then(items => {
-//     fs.writeFile(path.join(rootDir, 'items.json'), JSON.stringify(items));
-//
-//     console.log('images...');
-//
-//     getImages(items);
-//
-//     const failedDetailsParseCount = items.filter(item => item.ingredients === undefined).length;
-//     if (failedDetailsParseCount) {
-//       console.log(`failed to retrieve details for ${failedDetailsParseCount}`);
-//     }
-//   });
-// }
