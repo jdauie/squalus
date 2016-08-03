@@ -256,7 +256,7 @@ function getPages(category, incrementProgress) {
         .then(cards => {
           incrementProgress();
           for (const card of cards) {
-            if (card.id) {
+            if (card.id && card.itemType !== 'Video') {
               items.set(card.id, card);
             }
           }
@@ -329,6 +329,10 @@ function getAllDetails(items) {
         return ((detail && detail.image) ? getItemImage(detail, i) : Promise.resolve(detail)).then(() =>
           processNextItem(i + 1)
         );
+      }).catch(reason => {
+        console.log();
+        console.log(item);
+        throw reason;
       });
     }
 
