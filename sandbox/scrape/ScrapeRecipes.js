@@ -277,6 +277,7 @@ function getAllItems(ranges) {
   let crawlCount = 0;
   const incrementProgress = () => {
     const progress = crawlCount / totalPages;
+    process.stdout.write(`${' '.repeat(80)}\r`);
     process.stdout.write(`  crawl: ${++crawlCount} (~${getTimeEstimate(startTime, progress)} remaining)\r`);
   };
 
@@ -317,6 +318,7 @@ function getAllDetails(items) {
     if (i < items.length) {
       const item = items[i];
       return getItemDetail(item).then(detail => {
+        process.stdout.write(`${' '.repeat(80)}\r`);
         process.stdout.write(`  crawl: ${i + 1} (~${getTimeEstimate(startTime, (i + 1) / items.length)} remaining)\r`);
 
         if (detail) {
