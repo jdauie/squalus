@@ -13,29 +13,29 @@ const RequestError = requestPromiseErrors.RequestError;
 const rootDir = 'C:/tmp/scrape/recipes';
 
 const categories = {
-  14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
-  // 76: 'appetizers-and-snacks',
-  // 77: 'drinks',
-  // 78: 'breakfast-and-brunch',
-  // 79: 'desserts',
-  // 80: 'main-dish',
-  // 81: 'side-dish',
-  // 82: 'trusted-brands-recipes-and-tips',
-  // 84: 'healthy-recipes',
-  // 85: 'holidays-and-events',
-  // 86: 'world-cuisine',
-  // 88: 'bbq-grilling',
-  // 92: 'meat-and-poultry',
-  // 93: 'seafood',
-  // 94: 'soups-stews-and-chili',
-  // 95: 'pasta-and-noodles',
-  // 96: 'salad',
-  // 236: 'us-recipes',
-  // 1116: 'fruits-and-vegetables',
-  // 1642: 'everyday-cooking',
-  // 17561: 'lunch',
-  // 17562: 'dinner',
-  // 17567: 'ingredients',
+  // 14763: 'soups-stews-and-chili/chili/chili-without-beans', // small category for testing
+  76: 'appetizers-and-snacks',
+  77: 'drinks',
+  78: 'breakfast-and-brunch',
+  79: 'desserts',
+  80: 'main-dish',
+  81: 'side-dish',
+  82: 'trusted-brands-recipes-and-tips',
+  84: 'healthy-recipes',
+  85: 'holidays-and-events',
+  86: 'world-cuisine',
+  88: 'bbq-grilling',
+  92: 'meat-and-poultry',
+  93: 'seafood',
+  94: 'soups-stews-and-chili',
+  95: 'pasta-and-noodles',
+  96: 'salad',
+  236: 'us-recipes',
+  1116: 'fruits-and-vegetables',
+  1642: 'everyday-cooking',
+  17561: 'lunch',
+  17562: 'dinner',
+  17567: 'ingredients',
 };
 
 const requestUserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36';
@@ -104,6 +104,7 @@ function getAuthHeader() {
   }).then(response => {
     const authToken = response.headers['set-cookie'].find(c => c.startsWith('ARToken=')).split(';')[0].split('=')[1];
     authHeader = `Bearer ${authToken}`;
+    // console.log(`  token: ${authToken}`);
     return Promise.resolve();
   });
 }
@@ -310,7 +311,7 @@ function getAllItems(ranges) {
 
 function getAllDetails(items) {
   const startTime = Date.now();
-  const parsed = [];
+  let parsed = 0;
 
   const processNextItem = i => {
     if (i < items.length) {
@@ -319,10 +320,11 @@ function getAllDetails(items) {
         process.stdout.write(`  crawl: ${i + 1} (~${getTimeEstimate(startTime, (i + 1) / items.length)} remaining)\r`);
 
         if (detail) {
-          parsed.push(detail);
+          ++parsed;
+          fs.writeFile(path.join(getChunkDir(i), `${item.id}.json`), JSON.stringify(item));
         }
 
-        return ((detail && detail.image) ? getItemImage(detail, i) : Promise.resolve(detail)).next(() =>
+        return ((detail && detail.image) ? getItemImage(detail, i) : Promise.resolve(detail)).then(() =>
           processNextItem(i + 1)
         );
       });
@@ -341,11 +343,7 @@ export default function () {
     .then(getAllRanges)
     .then(getAllItems)
     .then(getAllDetails)
-    .then(items => {
-      console.log(`  parsed: ${items.length}`);
-
-      items.forEach((item, i) => {
-        fs.writeFile(path.join(getChunkDir(i), `${item.id}.json`), JSON.stringify(item));
-      });
+    .then(count => {
+      console.log(`  saved: ${count}`);
     });
 }
