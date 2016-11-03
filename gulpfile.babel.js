@@ -9,7 +9,6 @@ import webpackWebConfig from './webpack.config.web.babel';
 import WebpackDevServer from 'webpack-dev-server';
 import { squalus } from './src/SqualusNode';
 import AllTestsCollection from './sandbox/tests/All';
-import scrapeRecipes from './sandbox/scrape/ScrapeRecipes';
 
 const devServerPort = 8080;
 
@@ -46,10 +45,6 @@ gulp.task('test:api', () =>
     AllTestsCollection,
     path.join(__dirname, '/sandbox/tests/All.context.json')
   )
-);
-
-gulp.task('scrape:recipes', () =>
-  scrapeRecipes()
 );
 
 gulp.task('webpack:build', [], (callback) => {

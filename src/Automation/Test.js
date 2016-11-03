@@ -1,6 +1,7 @@
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
 
 import Squalus from '../Squalus';
+import FormData from 'form-data';
 import rp from 'request-promise';
 import colors from 'colors';
 import TestError from './TestError';
@@ -159,11 +160,20 @@ export default class Test {
         method: this._method,
         headers: {
           'Content-Type': this._contentType || 'application/json',
-          Cookie: context.get(group._session),
         },
         resolveWithFullResponse: true,
         simple: false,
       };
+
+      const sessionCookie = context.get(`http_cookie__${group._session}`);
+      if (sessionCookie) {
+        options.headers.Cookie = sessionCookie;
+      }
+
+      const sessionAuthorization = context.get(`http_authorization__${group._session}`);
+      if (sessionAuthorization) {
+        options.headers.Authorization = sessionAuthorization;
+      }
 
       if (this._contentType === 'application/x-www-form-urlencoded') {
         options.form = body;
@@ -241,7 +251,7 @@ export default class Test {
   formData(data) {
     this._contentType = 'multipart/form-data';
     const form = new FormData();
-    Object.keys(data).forEach(key => form.set(key, data[key]));
+    Object.keys(data).forEach(key => form.append(key, data[key]));
     this._body = form;
     return this;
   }
@@ -252,6 +262,14 @@ export default class Test {
     }
     this._save.set(name, func);
     return this;
+  }
+
+  saveCookie(name, func) {
+    return this.save(`http_cookie__${name}`, func);
+  }
+
+  saveAuthorization(name, func) {
+    return this.save(`http_authorization__${name}`, func);
   }
 
   expect(type) {

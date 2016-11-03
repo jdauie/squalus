@@ -33,7 +33,7 @@ export default class TestError {
       const responseContentType = (this._response.headers['content-type'] || '')
         .split(';')[0].toLowerCase().trim();
       // technically, the content-type header is only a SHOULD, rather than a MUST for entity responses,
-      // but I don't care enough to sniff the response to determine the media response
+      // but I don't care enough to sniff the response to determine the media type
       if (responseContentType) {
         let responseBody = this._response.body;
         let responseNote = null;
@@ -70,13 +70,16 @@ export default class TestError {
     console.log();
     console.log('  failed'.red);
     console.log();
-    Object.keys(info).forEach(k => console.log('    %s%s : %s',
-      k.yellow,
-      info[k].indexOf('\n') === -1
-        ? ' '.repeat(maxInfoNameLength - k.length)
-        : '',
-      info[k].replace(/\n/g, `\n${' '.repeat(4 + 4)}`)
-    ));
+    Object.keys(info).forEach(k => {
+      const infoVal = info[k] || '';
+      console.log('    %s%s : %s',
+        k.yellow,
+        infoVal.indexOf('\n') === -1
+          ? ' '.repeat(maxInfoNameLength - k.length)
+          : '',
+        infoVal.replace(/\n/g, `\n${' '.repeat(4 + 4)}`)
+      );
+    });
     console.log();
   }
 }
