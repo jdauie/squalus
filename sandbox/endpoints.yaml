@@ -1,4 +1,5 @@
 ---
 - url: "api/test"
   method: POST
+  params: Test.QueryParams
   data: Test.ObjectAll

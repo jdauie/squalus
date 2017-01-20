@@ -33,7 +33,7 @@ export default class Endpoint {
   constructor(url, method, params, type) {
     this._url = url;
     this._method = method;
-    this._params = (params && params.size) ? params : null;
+    this._params = params;
     this._type = type;
 
     this._node = null;

@@ -103,3 +103,7 @@ Test:
   ObjectAll2:
     ^: ObjectAll
     Nested: Nested5
+
+  QueryParams:
+    Page: uint
+    Rows: uint

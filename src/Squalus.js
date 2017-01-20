@@ -360,13 +360,12 @@ export default class Squalus {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
-      const params = new Map();
-      if (test.params) {
-        Object.keys(test.params).forEach(key => {
-          params.set(key, buildType(test.params[key]));
-        });
-      }
-      const def = new Endpoint(test.url, test.method, params, test.data ? buildType(test.data) : null);
+      const def = new Endpoint(
+        test.url,
+        test.method,
+        test.params ? buildType(test.params) : null,
+        test.data ? buildType(test.data) : null
+      );
       ul.appendChild($('li', def.build()));
     });
 
