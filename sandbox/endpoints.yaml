@@ -1,5 +1,11 @@
 ---
-- url: "api/test"
+- url: "api/test/{id}"
   method: POST
-  params: Test.QueryParams
+  headers:
+    Authorization?: string
+  urlParams:
+    id: int
+  queryParams:
+    page: uint
+    rows: uint
   data: Test.ObjectAll

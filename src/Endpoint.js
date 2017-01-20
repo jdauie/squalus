@@ -30,67 +30,79 @@ function convertValueToParam(val, key, query) {
 
 export default class Endpoint {
 
-  constructor(url, method, params, type) {
+  constructor(baseUrl, url, method, headers, urlParams, queryParams, body) {
+    this._baseUrl = baseUrl;
     this._url = url;
     this._method = method;
-    this._params = params;
-    this._type = type;
+    this._headers = headers;
+    this._urlParams = urlParams;
+    this._queryParams = queryParams;
+    this._body = body;
+
+    // todo: verify that url params is object and that there is a 1:1 correspondence with attributes and placeholders
+    // query params can be object, map, or scalar?
+    // headers can be object or map
+
+    // const names = this._url.match(/{[^}\s]+}/g).map(m => m.substr(1, m.length - 2));
 
     this._node = null;
   }
 
-  updateSingleParam(data) {
-    if (this._params) {
-      if (data.Id) {
-        this._node.querySelector('.test-param')._squalusType.populate(data.Id);
-      }
-    }
+  headers() {
+    return this._headers ? this._headers.value() : null;
   }
 
-  value() {
-    if (!this._type) {
-      return null;
-    }
-    return this._type.value();
+  urlParams() {
+    return this._urlParams ? this._urlParams.value() : null;
+  }
+
+  queryParams() {
+    return this._queryParams ? this._queryParams.value() : null;
+  }
+
+  body() {
+    return this._body ? this._body.value() : null;
   }
 
   populate(data, types) {
-    this._type.populate(data, 'body', types);
+    this._body.populate(data, 'body', types);
   }
 
   clear() {
-    this._type.clear();
+    this._body.clear();
   }
 
   lock() {
-    // this causes problems with the "edit" populate
-    // this._body.find('*').prop('disabled', true);
+    this._body.find('*').prop('disabled', true);
   }
 
   unlock() {
-    // this._body.find('*').prop('disabled', false);
+    this._body.find('*').prop('disabled', false);
   }
 
   getPopulatedUrl() {
-    const query = new Map();
     let url = this._url;
-    if (this._params) {
-      Array.from(this._node.querySelectorAll('.test-param')).forEach(param => {
-        const key = param.dataset.name;
-        const keyPlaceholder = `{${key}}`;
-        const val = param._squalusType.value();
-        if (url.indexOf(keyPlaceholder) === -1) {
-          if (val !== null && val !== '') {
-            convertValueToParam(val, key, query);
-          }
-        } else {
-          url = url.replace(keyPlaceholder, encodeURI(val));
-        }
-      });
+
+    const urlParams = this.urlParams();
+    if (urlParams) {
+      for (const key of Object.keys(urlParams)) {
+        url = url.replace(`{${key}}`, encodeURI(urlParams[key]));
+      }
     }
 
-    url = new URL(url, window.location.href);
-    query.forEach((value, key) => url.searchParams.append(key, value));
+    url = new URL(url, this._baseUrl);
+
+    const queryParams = this.queryParams();
+    if (queryParams) {
+      const query = new Map();
+      for (const key of Object.keys(queryParams)) {
+        const val = queryParams[key];
+        if (val !== null && val !== '') {
+          convertValueToParam(val, key, query);
+        }
+      }
+      query.forEach((value, key) => url.searchParams.append(key, value));
+    }
 
     return url;
   }
@@ -105,43 +117,20 @@ export default class Endpoint {
 
     const test = this._node.appendChild($('div', { class: 'endpoint-test' }));
 
-    if (this._params) {
-      const names = this._url.match(/{[^}\s]+}/g).map(m => m.substr(1, m.length - 2));
+    const sections = {
+      'http-headers': this._headers,
+      'url-params': this._urlParams,
+      'query-params': this._queryParams,
+      body: this._body,
+    };
 
-      if (this._params.size > names.length) {
-        names.prototype.push.apply(names, Array.from(this._params.keys()).filter(p => !names.includes(p)));
+    for (const section of Object.keys(sections)) {
+      if (sections[section]) {
+        test.appendChild($('div', { class: `endpoint-test-${section === 'body' ? 'body' : 'params'}` },
+          $('div', { class: 'endpoint-test-label' }, section),
+          sections[section].build())
+        );
       }
-
-      const params = test.appendChild($('div', { class: 'endpoint-test-params' },
-        $('div', { class: 'endpoint-test-label' }, 'params')
-      ));
-      params.appendChild($('table',
-        $('tbody',
-          names.map(param => {
-            const type = this._params.get(param);
-            if (type === undefined) {
-              throw new Error('required param type not specified');
-            }
-            return $('tr', { class: 'test-param', 'data-name': param, _squalusType: type },
-              $('th', param),
-              $('td', type.build())
-            );
-          })
-        )
-      ));
-      if (this._method === 'PUT') {
-        test.appendChild($('div', { class: 'endpoint-test-controls' },
-          $('input', { type: 'button', value: 'EDIT', class: 'test-edit' }),
-          $('span', { class: 'endpoint-test-status test-edit-status' })
-        ));
-      }
-    }
-
-    if (this._type) {
-      test.appendChild($('div', { class: 'endpoint-test-body' },
-        $('div', { class: 'endpoint-test-label' }, 'body'),
-        this._type.build())
-      );
     }
 
     test.appendChild($('div', { class: 'endpoint-test-controls' },
@@ -155,7 +144,8 @@ export default class Endpoint {
   submit() {
     // todo: trap parse errors
     const url = this.getPopulatedUrl();
-    const value = JSON.stringify(this.value());
+    const headers = this.headers();
+    const body = this.body();
 
     const options = {
       method: this._method,
@@ -163,66 +153,21 @@ export default class Endpoint {
         'Content-Type': 'application/json',
       },
     };
+
+    if (headers) {
+      for (const header of Object.keys(headers)) {
+        options.headers[header] = headers[header];
+      }
+    }
+
     if (['PUT', 'POST', 'PATCH'].includes(this._method)) {
-      options.body = value;
+      options.body = JSON.stringify(body);
     }
 
     fetch(url, options).then(res => {
       new Result(url, res).parse();
     }).catch(error => {
       new Result(url, error).parse();
-    });
-  }
-
-  edit() {
-    const url = this.getPopulatedUrl();
-    const status = this._node.querySelector('.test-edit-status');
-
-    status.textContent = '';
-
-    this.clear();
-    this.lock();
-
-    fetch(url).then(res => {
-      // testing
-      // const json = {
-      //   IntervalUnit: 'monthly',
-      //   IntervalOffset: 15,
-      //   TemplateId: 4,
-      //   Id: 3990,
-      // };
-
-      if (!res.ok) {
-        status.textContent = 'something went wrong';
-        this.unlock();
-        return;
-      }
-
-      res.json().then(json => {
-        let data = json;
-        // todo: this is going to require the actual validation implementation to handle branching
-
-        // if data is array, edit the first one (for convenience, to support shared id/search path)
-        if (Array.isArray(data)) {
-          if (data.length && this._params && this._params.size === 1) {
-            status.textContent = `Loaded first record (${data.length} total)`;
-            data = data[0];
-            this.updateSingleParam(data);
-          } else {
-            data = null;
-          }
-        }
-        if (data) {
-          this.populate(data);
-        } else {
-          status.textContent = 'No match for pattern';
-        }
-
-        this.unlock();
-      });
-    }).catch(error => {
-      status.textContent = error.message;
-      this.unlock();
     });
   }
 
@@ -235,10 +180,6 @@ export default class Endpoint {
 
   static onSubmit(event, def) {
     (def || this.closest(event.target)).submit();
-  }
-
-  static onEdit(event, def) {
-    (def || this.closest(event.target)).edit();
   }
 
   static closest(elem) {

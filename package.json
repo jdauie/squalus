@@ -8,8 +8,7 @@
     "lint": "eslint *.js src --ext .js --cache",
     "build": "npm run lint && gulp webpack:build",
     "dev": "gulp webpack:server",
-    "api": "gulp test:api",
-    "scrape:recipes": "node --max-old-space-size=8000 ./node_modules/gulp/bin/gulp.js scrape:recipes"
+    "api": "gulp test:api"
   },
   "repository": {
     "type": "git",

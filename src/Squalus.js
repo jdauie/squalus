@@ -361,9 +361,12 @@ export default class Squalus {
 
     tests.forEach(test => {
       const def = new Endpoint(
+        window.location.href,
         test.url,
         test.method,
-        test.params ? buildType(test.params) : null,
+        test.headers ? buildType(test.headers) : null,
+        test.urlParams ? buildType(test.urlParams) : null,
+        test.queryParams ? buildType(test.queryParams) : null,
         test.data ? buildType(test.data) : null
       );
       ul.appendChild($('li', def.build()));
@@ -377,7 +380,6 @@ export default class Squalus {
         '.test-row-add': ArrayType.onClickAdd,
         '.test-row-remove': ArrayType.onClickRemove,
         '.test-attr-toggle': AttributeType.onClickToggle,
-        '.test-edit': Endpoint.onEdit,
         '.test-submit': Endpoint.onSubmit,
       },
       keypress: {
