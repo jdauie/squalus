@@ -1,5 +1,5 @@
 import { default as $ } from './Tag';
-import Result from './Result';
+import RequestInstance from './RequestInstance';
 
 function closestAncestorByClassName(elem, className) {
   let e = elem.parentNode;
@@ -164,10 +164,8 @@ export default class Endpoint {
       options.body = JSON.stringify(body);
     }
 
-    fetch(url, options).then(res => {
-      new Result(url, res).parse();
-    }).catch(error => {
-      new Result(url, error).parse();
+    RequestInstance.execute(url, options).then(req => {
+      req.dump();
     });
   }
 
