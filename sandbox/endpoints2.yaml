@@ -1,6 +1,102 @@
 ---
-- url: "mobileapp/account/signin"
-  method: POST
-  data:
+- post: /mobileapp/account/signin
+  body:
     username: string
     password: password
+
+- get: /mobileapp/account
+  headers: Api.AuthHeaders
+
+- put: /mobileapp/account
+  headers: Api.AuthHeaders
+  body:
+    firstName: string
+    lastName: string
+    email: email
+
+- put: /mobileapp/account/password
+  headers: Api.AuthHeaders
+  body:
+    currentPassword: password
+    newPassword: password
+
+- get: /mobileapp/account/roottags
+  headers: Api.AuthHeaders
+
+- get: /mobileapp/account/tags
+  headers: Api.AuthHeaders
+
+- post: /mobileapp/account/tags
+  headers: Api.AuthHeaders
+  body: int
+
+- delete: /mobileapp/account/tags/{id}
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+
+- get: /mobileapp/submissions
+  headers: Api.AuthHeaders
+  queryParams:
+    page: int
+    rows?: int
+    sort?: string{title,updated,submitted}
+    order?: string{asc,desc}
+    status?: string{new,inprogress,accepted,declined,withdrawn,completed,editable}
+    search?: string
+    organization?: int
+
+- get: /mobileapp/submissions/{id}
+  urlParams:
+    id: int
+  headers: Api.AuthHeaders
+
+- delete: /mobileapp/submissions/{id}
+  urlParams:
+    id: int
+  headers: Api.AuthHeaders
+
+- post: /mobileapp/submissions/{id}/withdraw
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: string
+
+- post: /mobileapp/submissions/{id}/accept
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: string
+
+- post: /mobileapp/submissions/{id}/edit
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: string
+
+- post: /mobileapp/submissions/{id}/closeedit
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: string
+
+- get: /mobileapp/submissions/{id}/activity
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+
+- post: /mobileapp/submissions/{id}/notes
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: string
+
+- get: /mobileapp/submissions/files/{id}
+  headers: Api.AuthHeadersAlternate
+  urlParams:
+    id: guid
+  queryParams:
+    download: string{true,false}
+
+- get: /mobileapp/submissionschanged
+  headers: Api.AuthHeadersAlternate

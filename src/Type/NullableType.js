@@ -28,8 +28,8 @@ export default class NullableType {
     return (value === null) || this._type.validate(value, path, silent, context);
   }
 
-  populate(data, path, types) {
-    this._type.populate(data, path, types);
+  populate(data) {
+    this._type.populate(data);
   }
 
   clear() {

@@ -1,5 +1,7 @@
 import ScalarType from './../ScalarType';
 
+const maxRangeExpansion = 100;
+
 export default class IntScalarType extends ScalarType {
 
   constructor(type, values) {
@@ -40,7 +42,7 @@ export default class IntScalarType extends ScalarType {
     const rangeSize = ranges.reduce((previous, current) => previous + (current[1] - current[0]), 0);
 
     // if the ranges are small enough, just enumerate them
-    if (rangeSize + fixed.length <= 100) {
+    if (rangeSize + fixed.length <= maxRangeExpansion) {
       ranges.forEach(r => {
         for (let i = r[0]; i <= r[1]; i++) {
           fixed.push(i);
@@ -59,6 +61,7 @@ export default class IntScalarType extends ScalarType {
   }
 
   value() {
-    return parseInt(this._node.value, 10);
+    const value = this._node.value.trim();
+    return value === '' ? null : parseInt(this._node.value, 10);
   }
 }

@@ -11,6 +11,7 @@ export default class FloatScalarType extends ScalarType {
   }
 
   value() {
-    return parseFloat(this._node.value);
+    const value = this._node.value.trim();
+    return value === '' ? null : parseFloat(this._node.value);
   }
 }

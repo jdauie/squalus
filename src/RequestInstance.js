@@ -33,6 +33,10 @@ export default class RequestInstance {
     for (const pair of this._responseHeaders.entries()) {
       console.log(`  ${pair[0]}: ${pair[1]}`);
     }
-    console.log(this._responseBody);
+    try {
+      console.log(JSON.parse(this._responseBody));
+    } catch (e) {
+      // ignore
+    }
   }
 }

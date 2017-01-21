@@ -52,8 +52,8 @@ export default class AttributeType {
     return this._type.value();
   }
 
-  populate(data, path, types) {
-    this._type.populate(data, `${path}.${this._name}`, types);
+  populate(data) {
+    this._type.populate(data);
     this._included = true;
     this.update();
   }

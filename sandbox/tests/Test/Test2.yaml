@@ -1,0 +1,8 @@
+---
+Api:
+
+  AuthHeaders:
+    Authorization: string
+
+  AuthHeadersAlternate:
+   X-Authorization: string

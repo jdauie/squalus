@@ -10,14 +10,20 @@ import ScalarType from './Type/ScalarType';
 import MapType from './Type/MapType';
 
 import BoolScalarType from './Type/Scalar/BoolScalarType';
+import EmailScalarType from './Type/Scalar/EmailScalarType';
 import FloatScalarType from './Type/Scalar/FloatScalarType';
+import GuidScalarType from './Type/Scalar/GuidScalarType';
 import IntScalarType from './Type/Scalar/IntScalarType';
 import NullScalarType from './Type/Scalar/NullScalarType';
+import PasswordScalarType from './Type/Scalar/PasswordScalarType';
 
 ScalarType.register('null', NullScalarType);
 ScalarType.register(['int', 'uint'], IntScalarType);
 ScalarType.register('float', FloatScalarType);
 ScalarType.register('bool', BoolScalarType);
+ScalarType.register('guid', GuidScalarType);
+ScalarType.register('email', EmailScalarType);
+ScalarType.register('password', PasswordScalarType);
 
 const registeredTypes = new Map();
 
@@ -360,14 +366,27 @@ export default class Squalus {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
+      const supportedMethods = [
+        'get',
+        'put',
+        'post',
+        'delete',
+      ];
+
+      const providedMethods = supportedMethods.filter(x => test[x]);
+
+      if (providedMethods.length !== 1) {
+        throw new Error('missing or invalid method');
+      }
+
       const def = new Endpoint(
         baseUrl,
-        test.url,
-        test.method,
+        test[providedMethods[0]],
+        providedMethods[0].toUpperCase(),
         test.headers ? buildType(test.headers) : null,
         test.urlParams ? buildType(test.urlParams) : null,
         test.queryParams ? buildType(test.queryParams) : null,
-        test.data ? buildType(test.data) : null
+        test.body ? buildType(test.body) : null
       );
       ul.appendChild($('li', def.build()));
 

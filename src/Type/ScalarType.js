@@ -8,6 +8,7 @@ const implementations = new Map();
   'float',
   'string',
   'password',
+  'email',
   'bool',
   'date',
   'datetime',
@@ -40,17 +41,15 @@ export default class ScalarType {
   }
 
   _build() {
-    const inputType = this._type === 'password' ? 'password' : 'text';
-
     if (this._values) {
       if (this._values.length === 1) {
-        return $('input', { type: inputType, disabled: true, value: this._values[0] });
+        return $('input', { type: 'text', disabled: true, value: this._values[0] });
       }
       return $('select',
         this._values.map(v => $('option', v))
       );
     }
-    return $('input', { type: inputType, placeholder: this._type });
+    return $('input', { type: 'text', placeholder: this._type });
   }
 
   build() {

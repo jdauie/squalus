@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AutoResponder LastSave="2017-01-20T20:59:54.4567725-07:00" FiddlerVersion="4.6.3.50306">
+  <State Enabled="true" Fallthrough="true" UseLatency="false">
+    <ResponseRule Match="METHOD:CONNECT" Action="*ReplyWithTunnel" Enabled="true" />
+    <ResponseRule Match="regex:^https://manager.submittable.com/squalus/(.*)$" Action="c:\projects\squalus\sandbox\$1" Enabled="true" />
+    <ResponseRule Match="regex:^https://manager.submittable.com/lib/squalus(.+)$" Action="c:\projects\squalus\lib\squalus$1" Enabled="true" />
+    <ResponseRule Match="regex:^https://manager.submittable.com/sandbox/(.+)$" Action="c:\projects\squalus\sandbox\$1" Enabled="true" />
+  </State>
+</AutoResponder>

@@ -32,10 +32,10 @@ export default class ArrayType {
     return this._node;
   }
 
-  populate(data, path, types) {
+  populate(data) {
     for (let i = 0; i < data.length; i++) {
       const row = this.add();
-      row.populate(data[i], `${path}[${i}]`, types);
+      row.populate(data[i]);
     }
   }
 

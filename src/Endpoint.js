@@ -28,6 +28,13 @@ function convertValueToParam(val, key, query) {
   }
 }
 
+const sections = {
+  headers: 'http-headers',
+  urlParams: 'url-params',
+  queryParams: 'query-params',
+  body: 'body',
+};
+
 export default class Endpoint {
 
   constructor(baseUrl, url, method, headers, urlParams, queryParams, body) {
@@ -48,6 +55,10 @@ export default class Endpoint {
     this._node = null;
   }
 
+  section(name) {
+    return this[`_${name}`];
+  }
+
   headers() {
     return this._headers ? this._headers.value() : null;
   }
@@ -62,10 +73,6 @@ export default class Endpoint {
 
   body() {
     return this._body ? this._body.value() : null;
-  }
-
-  populate(data, types) {
-    this._body.populate(data, 'body', types);
   }
 
   clear() {
@@ -117,18 +124,12 @@ export default class Endpoint {
 
     const test = this._node.appendChild($('div', { class: 'endpoint-test' }));
 
-    const sections = {
-      'http-headers': this._headers,
-      'url-params': this._urlParams,
-      'query-params': this._queryParams,
-      body: this._body,
-    };
-
-    for (const section of Object.keys(sections)) {
-      if (sections[section]) {
-        test.appendChild($('div', { class: `endpoint-test-${section === 'body' ? 'body' : 'params'}` },
-          $('div', { class: 'endpoint-test-label' }, section),
-          sections[section].build())
+    for (const key of Object.keys(sections)) {
+      const section = this.section(key);
+      if (section) {
+        test.appendChild($('div', { class: `endpoint-test-${key === 'body' ? 'body' : 'params'}` },
+          $('div', { class: 'endpoint-test-label' }, sections[key]),
+          section.build())
         );
       }
     }
@@ -169,23 +170,38 @@ export default class Endpoint {
     });
   }
 
+  storageKey() {
+    return `squalus:${this._method.toLowerCase()}-${this._url}`;
+  }
+
   load() {
     // todo: load from storage if the endpoint hasn't changed
-    let body = localStorage.getItem('body-needsid');
-    if (body) {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        // ignore
-        return;
+
+    for (const key of Object.keys(sections)) {
+      const section = this.section(key);
+      if (section) {
+        let value = localStorage.getItem(`${this.storageKey()}-${key}`);
+        if (value != null) {
+          try {
+            value = JSON.parse(value);
+          } catch (e) {
+            continue;
+          }
+          section.populate(value);
+        }
       }
-      this.populate(body);
     }
   }
 
   unload() {
     // todo: save values, ignoring parse errors? not sure, it needs to be able to recreate branches, etc.
-    localStorage.setItem('body-needsid', JSON.stringify(this._body.value()));
+
+    for (const key of Object.keys(sections)) {
+      const section = this.section(key);
+      if (section) {
+        localStorage.setItem(`${this.storageKey()}-${key}`, JSON.stringify(section.value()));
+      }
+    }
   }
 
   static onBeforeUnload() {

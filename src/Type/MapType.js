@@ -39,11 +39,11 @@ export default class MapType {
     return this._node;
   }
 
-  populate(data, path, types) {
+  populate(data) {
     Object.keys(data).forEach((key, i) => {
       const row = this.add();
       this._body.children[i].firstElementChild.textContent = key;
-      row.populate(data[key], `${path}[${key}]`, types);
+      row.populate(data[key]);
     });
   }
 

@@ -34,9 +34,9 @@ export default class ObjectType {
     return data;
   }
 
-  populate(data, path, types) {
+  populate(data) {
     this._attributes.forEach(attr => {
-      attr.populate(data[attr.name()], path, types);
+      attr.populate(data[attr.name()]);
     });
   }
 
