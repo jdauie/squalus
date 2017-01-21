@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 
 export default class SqualusWeb extends Squalus {
 
-  static build(types, endpoints, root) {
+  static build(types, baseUrl, endpoints, root) {
     const resolvedTypes = (Array.isArray(types) || typeof types === 'string')
       ? Promise.all((Array.isArray(types) ? types : [types]).map(url =>
           fetch(url)
@@ -28,7 +28,7 @@ export default class SqualusWeb extends Squalus {
     ]).then(values => ((t, e) => {
       Squalus.buildTypes(t);
       docReady(() => {
-        Squalus.buildTests(e, typeof root === 'string' ? document.getElementById(root) : root);
+        Squalus.buildTests(e, baseUrl, typeof root === 'string' ? document.getElementById(root) : root);
       });
     }).apply(null, values));
   }

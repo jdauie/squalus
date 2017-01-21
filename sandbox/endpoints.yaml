@@ -9,3 +9,6 @@
     page: uint
     rows: uint
   data: Test.ObjectAll
+
+- url: "test/ObjectAll"
+  method: GET

@@ -356,12 +356,12 @@ export default class Squalus {
     });
   }
 
-  static buildTests(tests, root) {
+  static buildTests(tests, baseUrl, root) {
     const ul = root.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
       const def = new Endpoint(
-        window.location.href,
+        baseUrl,
         test.url,
         test.method,
         test.headers ? buildType(test.headers) : null,
@@ -370,6 +370,8 @@ export default class Squalus {
         test.data ? buildType(test.data) : null
       );
       ul.appendChild($('li', def.build()));
+
+      def.load();
     });
 
     const events = {
@@ -386,6 +388,8 @@ export default class Squalus {
         'input[type=text],input[type=checkbox],select': Endpoint.onKeyPress,
       },
     };
+
+    window.addEventListener('beforeunload', Endpoint.onBeforeUnload);
 
     // handle events
     Object.keys(events).forEach(type => {

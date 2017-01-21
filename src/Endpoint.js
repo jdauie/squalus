@@ -169,6 +169,29 @@ export default class Endpoint {
     });
   }
 
+  load() {
+    // todo: load from storage if the endpoint hasn't changed
+    let body = localStorage.getItem('body-needsid');
+    if (body) {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // ignore
+        return;
+      }
+      this.populate(body);
+    }
+  }
+
+  unload() {
+    // todo: save values, ignoring parse errors? not sure, it needs to be able to recreate branches, etc.
+    localStorage.setItem('body-needsid', JSON.stringify(this._body.value()));
+  }
+
+  static onBeforeUnload() {
+    Array.from(document.getElementsByClassName('endpoint')).forEach(node => node._squalusDef.unload());
+  }
+
   static onKeyPress(event, def) {
     if (event.which === 13) {
       event.preventDefault();

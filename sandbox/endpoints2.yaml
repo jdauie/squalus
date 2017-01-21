@@ -1,0 +1,6 @@
+---
+- url: "mobileapp/account/signin"
+  method: POST
+  data:
+    username: string
+    password: password
