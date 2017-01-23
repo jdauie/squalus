@@ -96,7 +96,85 @@
   urlParams:
     id: guid
   queryParams:
-    download: string{true,false}
+    download?: string{true,false}
 
 - get: /mobileapp/submissionschanged
-  headers: Api.AuthHeadersAlternate
+  headers: Api.AuthHeaders
+
+- get: /mobileapp/opportunities
+  headers: Api.AuthHeaders
+  queryParams:
+    page: int
+    rows?: int
+    sort?: string{deadline,random}
+    search?: string
+    seed?: guid
+    organization?: int
+    list?: int
+
+- get: /mobileapp/opportunities/{id}
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+
+
+- get: /mobileapp/opportunitylists
+  headers: Api.AuthHeaders
+  queryParams:
+    page: int
+    rows?: int
+
+- post: /mobileapp/opportunitylists
+  headers: Api.AuthHeaders
+  body: string
+
+- delete: /mobileapp/opportunitylists/{id}
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+
+- get: /mobileapp/opportunitylists/{id}/items
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  queryParams:
+    page: int
+    rows?: int
+
+- get: /mobileapp/opportunitylists/all/items
+  headers: Api.AuthHeaders
+  queryParams:
+    page: int
+    rows?: int
+
+- post: /mobileapp/opportunitylists/{id}/items
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+  body: int
+
+- delete: /mobileapp/opportunitylists/{listId}/items/{opportunityId}
+  headers: Api.AuthHeaders
+  urlParams:
+    listId: int
+    opportunityId: int
+
+- get: /mobileapp/organizations/{id}
+  headers: Api.AuthHeaders
+  urlParams:
+    id: int
+
+- post: /mobileapp/following
+  headers: Api.AuthHeaders
+  body: guid
+
+- delete: /mobileapp/following/{id}
+  headers: Api.AuthHeaders
+  urlParams:
+    id: guid
+
+- get: /mobileapp/following
+  headers: Api.AuthHeaders
+  queryParams:
+    page: int
+    rows?: int

@@ -362,8 +362,11 @@ export default class Squalus {
     });
   }
 
-  static buildTests(tests, baseUrl, root) {
-    const ul = root.appendChild($('ul', { class: 'api-tests' }));
+  static buildTests(tests, baseUrl) {
+    const root = document.body.appendChild($('div', { id: 'api-root' }));
+    const api = root.appendChild($('div', { id: 'api-container' }));
+    root.appendChild($('div', { id: 'output-container' }));
+    const ul = api.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
       const supportedMethods = [
@@ -428,5 +431,6 @@ export default class Squalus {
     });
 
     BranchType.initializeSelectionStates(root);
+    AttributeType.initializeIncludedStates(root);
   }
 }

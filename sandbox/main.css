@@ -18,7 +18,48 @@ ul {
 }
 
 #api-root {
+  position:fixed;
+  top:0;
+  right:0;
+  bottom:0;
+  left:0;
+  display:flex;
 }
+#api-container {
+  flex:1 1 0px;
+  overflow-y:scroll;
+}
+#output-container {
+  flex:1 1 0px;
+  overflow-y:scroll;
+}
+.output-section {
+  border:1px solid #ccc;
+  border-radius:4px;
+  padding:5px 4px 3px 4px;
+  margin: 4px 4px;
+}
+.output-section-label {
+  font-size: 9px;
+  display: inline;
+  background-color: #eee;
+  padding: 2px 4px;
+  position: relative;
+  top: -6px;
+  left: -4px;
+  border-color:#ddd;
+  border-width:0 1px 1px 0;
+  border-style: solid;
+  border-bottom-right-radius: 4px;
+  text-transform: uppercase;
+}
+.output-section th {
+  font-weight:normal;
+  text-align:left;
+  padding:0 20px 0 0;
+  white-space: nowrap;
+}
+
 .api-tests {
   margin:10px;
 }

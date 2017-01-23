@@ -5,4 +5,5 @@ Api:
     Authorization: string
 
   AuthHeadersAlternate:
-   X-Authorization: string
+    X-Authorization: string
+

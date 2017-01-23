@@ -92,5 +92,12 @@ export default class AttributeType {
   static onClickToggle(event) {
     event.target.parentNode.parentNode._squalusType.toggle();
   }
+
+  static initializeIncludedStates(root) {
+    Array.from(root.querySelectorAll('.test-attr-toggle')).forEach(elem => {
+      const event = new Event('click', { bubbles: true });
+      elem.dispatchEvent(event);
+    });
+  }
 }
 
