@@ -187,7 +187,11 @@ export default class Endpoint {
           } catch (e) {
             continue;
           }
-          section.populate(value);
+          try {
+            section.populate(value);
+          } catch (e) {
+            // todo: sort this out
+          }
         }
       }
     }

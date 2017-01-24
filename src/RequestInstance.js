@@ -52,7 +52,11 @@ export default class RequestInstance {
     let responseBody = this._responseBody;
     const contentType = this._responseHeaders.get('content-type');
     if (contentType && contentType.indexOf('application/json') !== -1) {
-      responseBody = JSON.stringify(JSON.parse(responseBody), null, 2);
+      try {
+        responseBody = JSON.stringify(JSON.parse(responseBody), null, 2);
+      } catch (e) {
+        // html comes back for some errors
+      }
     }
 
     const body = $('pre');

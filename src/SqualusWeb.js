@@ -1,10 +1,13 @@
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^style$" }] */
+
 import Squalus from './Squalus';
 import docReady from 'es6-docready';
 import yaml from 'js-yaml';
+import style from './static/squalus.css';
 
 export default class SqualusWeb extends Squalus {
 
-  static build(types, baseUrl, endpoints) {
+  static build(baseUrl, endpoints, types) {
     const resolvedTypes = (Array.isArray(types) || typeof types === 'string')
       ? Promise.all((Array.isArray(types) ? types : [types]).map(url =>
           fetch(url)

@@ -27,6 +27,10 @@ export default {
         loader: 'babel',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        loader: 'style!css',
+      },
     ],
   },
   externals: [externals()],

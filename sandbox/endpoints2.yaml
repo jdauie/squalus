@@ -4,6 +4,22 @@
     username: string
     password: password
 
+- post: /mobileapp/account/facebook
+  body:
+    token: string
+
+- get: /mobileapp/account/cookie
+  headers: Api.AuthHeaders
+
+- post: /mobileapp/account/reset
+  body:
+    email: email
+
+- post: /mobileapp/account/confirmreset
+  body:
+    code: string
+    password: string
+
 - get: /mobileapp/account
   headers: Api.AuthHeaders
 

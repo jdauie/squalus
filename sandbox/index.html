@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>API Test</title>
-  <link rel="stylesheet" href="main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script>
   <script>
     require.config({
@@ -12,9 +11,11 @@
       },
     });
     require(['squalus'], function(squalus) {
-      squalus.default.build([
-        '/sandbox/tests/Test/Test2.yaml',
-      ], 'https://manager.submittable.com', '/sandbox/endpoints2.yaml');
+      squalus.default.build(
+        'http://localjournal.submishmash.com',
+        '/sandbox/endpoints2.yaml',
+        '/sandbox/tests/Test/Test2.yaml'
+      );
     });
   </script>
 </head>
