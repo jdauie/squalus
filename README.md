@@ -82,6 +82,53 @@ export default group('auth')
   ]);
 ```
 
+# Endpoint Definitions
+
+```yaml
+- url: "api/test/{id}"
+  method: POST
+  headers:
+    Authorization?: string
+  urlParams:
+    id: int
+  queryParams:
+    page: uint
+    rows: uint
+  data: Test.ObjectAll
+
+- url: "test/ObjectAll"
+  method: GET
+```
+
+# Endpoint Tests
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script>
+    <script>
+        require.config({
+            paths: {
+                squalus: '../node_modules/squalus/lib/squalus',
+            },
+        });
+        require(['squalus'], function(squalus) {
+            squalus.default.build(
+                'http://example.com',
+                '/test-api/Api.yaml',
+                '/test-api/Types.yaml'
+            );
+        });
+    </script>
+</head>
+<body>
+</body>
+</html>
+```
+
 # TODO
 
 * When branching instances are specified, it should be in such a way that there is a unique field that can be used as a discrimination key for determining which branch to test.  This helps with performance, and also with error messages, because they can return the specific match failure, rather than the generic "does not match any candidates".  This has not yet been implemented in this version.
