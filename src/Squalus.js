@@ -353,7 +353,7 @@ export default class Squalus {
 
   static buildTypes(root) {
     // check names and dependencies
-    const dependencies = buildKnownDependencies().concat(parseRoot(root));
+    const dependencies = buildKnownDependencies().concat(parseRoot(root || {}));
     const sorted = topoSort(dependencies, d => d.name, d => d.requires);
 
     sorted.forEach((type, name) => {

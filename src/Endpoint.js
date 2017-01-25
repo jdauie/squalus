@@ -150,6 +150,7 @@ export default class Endpoint {
 
     const options = {
       method: this._method,
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
       },

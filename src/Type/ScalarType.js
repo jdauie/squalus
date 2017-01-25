@@ -63,7 +63,7 @@ export default class ScalarType {
   }
 
   populate(data) {
-    this._node.value = data;
+    this._node.value = (data === undefined) ? '' : data;
   }
 
   _validate(value) {
