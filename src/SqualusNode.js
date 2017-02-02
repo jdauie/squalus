@@ -31,7 +31,8 @@ function getFiles(source, regex) {
 class SqualusNode extends Squalus {
 
   static execute(typePath, collectionInstance, initialContextPath) {
-    const files = getFiles(typePath, /\.yaml$/);
+    const typePaths = Array.isArray(typePath) ? typePath : [typePath];
+    const files = [].concat.apply([], typePaths.map(p => getFiles(p, /\.yaml$/)));
 
     if (files.length) {
       const types = Object.assign.apply(null,
