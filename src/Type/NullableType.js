@@ -35,11 +35,4 @@ export default class NullableType {
   clear() {
     this._type.clear();
   }
-
-  toJSON() {
-    return {
-      _: 'nullable',
-      type: this._type,
-    };
-  }
 }

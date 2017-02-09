@@ -80,11 +80,4 @@ export default class ObjectType {
   clear() {
     this._attributes.forEach(attr => attr.clear());
   }
-
-  toJSON() {
-    return {
-      _: 'object',
-      attributes: this._attributes,
-    };
-  }
 }

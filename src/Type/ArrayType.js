@@ -80,13 +80,6 @@ export default class ArrayType {
     }
   }
 
-  toJSON() {
-    return {
-      _: 'array',
-      type: this._type,
-    };
-  }
-
   static onClickAdd(event) {
     event.target.parentNode.parentNode.parentNode.parentNode._squalusType.add();
   }

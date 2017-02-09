@@ -111,12 +111,4 @@ export default class MapType {
     this._rows.splice(i, 1);
     this._body.children[i].remove();
   }
-
-  toJSON() {
-    return {
-      _: 'map',
-      key: this._key,
-      type: this._type,
-    };
-  }
 }

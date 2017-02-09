@@ -81,14 +81,6 @@ export default class AttributeType {
     }
   }
 
-  toJSON() {
-    return {
-      _: 'attribute',
-      name: this._name,
-      type: this._type,
-    };
-  }
-
   static onClickToggle(event) {
     event.target.parentNode.parentNode._squalusType.toggle();
   }

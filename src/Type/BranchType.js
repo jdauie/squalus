@@ -71,13 +71,6 @@ export default class BranchType {
     this._types.forEach(type => type.clear());
   }
 
-  toJSON() {
-    return {
-      _: 'branch',
-      types: this._types,
-    };
-  }
-
   static onChange(event) {
     let node = event.target;
     let i = 0;

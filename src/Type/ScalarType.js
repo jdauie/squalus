@@ -1,10 +1,15 @@
 import { default as $ } from './../Tag';
+import ValueCollection from './Scalar/ValueCollection';
 
 const implementations = new Map();
 [
   'null',
   'int',
   'uint',
+  'pint',
+  'long',
+  'ulong',
+  'plong',
   'float',
   'string',
   'password',
@@ -12,6 +17,7 @@ const implementations = new Map();
   'bool',
   'date',
   'datetime',
+  'utc',
   'timestamp',
   'guid',
 ].forEach(type => implementations.set(type, null));
@@ -20,7 +26,7 @@ export default class ScalarType {
 
   constructor(type, values) {
     this._type = type;
-    this._values = this._parse(values);
+    this._values = Array.isArray(values) ? this._parse(values) : null;
     this._node = null;
   }
 
@@ -32,12 +38,8 @@ export default class ScalarType {
     return new this.constructor(this._type, this._values);
   }
 
-  supportsValues() {
-    return true;
-  }
-
   _parse(values) {
-    return values;
+    return new ValueCollection(values);
   }
 
   _build() {
@@ -104,13 +106,6 @@ export default class ScalarType {
     } else {
       implementations.set(type, implementation);
     }
-  }
-
-  toJSON() {
-    return {
-      _: 'scalar',
-      type: this._type,
-    };
   }
 
   static create(type, values) {
