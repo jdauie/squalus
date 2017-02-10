@@ -3,23 +3,11 @@ import ValueCollection from './Scalar/ValueCollection';
 
 const implementations = new Map();
 [
-  'null',
-  'int',
-  'uint',
-  'pint',
-  'long',
-  'ulong',
-  'plong',
-  'float',
   'string',
-  'password',
-  'email',
-  'bool',
   'date',
   'datetime',
   'utc',
   'timestamp',
-  'guid',
 ].forEach(type => implementations.set(type, null));
 
 export default class ScalarType {
@@ -44,12 +32,15 @@ export default class ScalarType {
 
   _build() {
     if (this._values) {
-      if (this._values.length === 1) {
-        return $('input', { type: 'text', disabled: true, value: this._values[0] });
+      const values = this._values.values();
+      if (values) {
+        if (values.length === 1) {
+          return $('input', { type: 'text', disabled: true, value: values[0] });
+        }
+        return $('select',
+          values.map(v => $('option', v))
+        );
       }
-      return $('select',
-        this._values.map(v => $('option', v))
-      );
     }
     return $('input', { type: 'text', placeholder: this._type });
   }
@@ -80,11 +71,11 @@ export default class ScalarType {
       throw new Error(`${path} must be of type ${this._type}`);
     }
 
-    if (this._values && !this._values.includes(value)) {
+    if (this._values && !this._values.contains(value)) {
       if (silent) {
         return false;
       }
-      throw new Error(`${path}: '${value}' must be in [${this._values.join(', ')}]`);
+      throw new Error(`${path}: '${value}' must be in [${this._values.toString()}]`);
     }
 
     return true;
@@ -100,12 +91,16 @@ export default class ScalarType {
     }
   }
 
-  static register(type, implementation) {
-    if (Array.isArray(type)) {
-      type.forEach(t => implementations.set(t, implementation));
-    } else {
-      implementations.set(type, implementation);
-    }
+  static register(types) {
+    types.forEach(type => {
+      const supports = type.supports();
+      (Array.isArray(supports) ? supports : [supports]).forEach(s => {
+        if (implementations.has(s)) {
+          throw new TypeError(`duplicate registration for scalar type ${s}`);
+        }
+        implementations.set(s, type);
+      });
+    });
   }
 
   static create(type, values) {

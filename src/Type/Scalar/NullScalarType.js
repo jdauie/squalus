@@ -13,4 +13,8 @@ export default class NullScalarType extends ScalarType {
   value() {
     return null;
   }
+
+  static supports() {
+    return ['null'];
+  }
 }

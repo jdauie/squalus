@@ -6,4 +6,8 @@ export default class EmailScalarType extends ScalarType {
     return value && value.match(
       /^(([^<>()\[\].,;:\s@"]+(\.[^<>()\[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i);
   }
+
+  static supports() {
+    return ['email'];
+  }
 }

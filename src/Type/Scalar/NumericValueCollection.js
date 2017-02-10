@@ -3,12 +3,14 @@ import ValueCollection from './ValueCollection';
 export default class NumericValueCollection extends ValueCollection {
 
   constructor(values) {
+    super([]);
+
     this._ranges = [];
     const discrete = [];
 
-    for (let value of values) {
+    for (const value of values) {
       if (value.indexOf('-') !== -1) {
-        const parts = current.split('-');
+        const parts = value.split('-');
         const start = this.parse(parts[0]);
         const end = this.parse(parts[1]);
 
@@ -26,11 +28,11 @@ export default class NumericValueCollection extends ValueCollection {
 
         this._ranges.push([start, end]);
       } else {
-        discrete.push(this.parse(current));
+        discrete.push(this.parse(value));
       }
     }
 
-    super(discrete);
+    this._values = discrete;
   }
 
   parse(value) {
@@ -38,7 +40,8 @@ export default class NumericValueCollection extends ValueCollection {
   }
 
   contains(value) {
-    return super.values().includes(value) || this._ranges.some(r => (isNaN(r[0]) || r[0] <= value) && (isNaN(r[1]) || r[1] >= value));
+    return super.values().includes(value) ||
+      this._ranges.some(r => (isNaN(r[0]) || r[0] <= value) && (isNaN(r[1]) || r[1] >= value));
   }
 
   values() {

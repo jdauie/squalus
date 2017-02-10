@@ -11,19 +11,21 @@ import MapType from './Type/MapType';
 
 import BoolScalarType from './Type/Scalar/BoolScalarType';
 import EmailScalarType from './Type/Scalar/EmailScalarType';
-import FloatScalarType from './Type/Scalar/FloatScalarType';
 import GuidScalarType from './Type/Scalar/GuidScalarType';
 import IntScalarType from './Type/Scalar/IntScalarType';
 import NullScalarType from './Type/Scalar/NullScalarType';
+import NumericScalarType from './Type/Scalar/NumericScalarType';
 import PasswordScalarType from './Type/Scalar/PasswordScalarType';
 
-ScalarType.register('null', NullScalarType);
-ScalarType.register(['int', 'uint'], IntScalarType);
-ScalarType.register('float', FloatScalarType);
-ScalarType.register('bool', BoolScalarType);
-ScalarType.register('guid', GuidScalarType);
-ScalarType.register('email', EmailScalarType);
-ScalarType.register('password', PasswordScalarType);
+ScalarType.register([
+  BoolScalarType,
+  EmailScalarType,
+  GuidScalarType,
+  IntScalarType,
+  NullScalarType,
+  NumericScalarType,
+  PasswordScalarType,
+]);
 
 const registeredTypes = new Map();
 

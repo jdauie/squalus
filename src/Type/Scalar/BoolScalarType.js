@@ -1,10 +1,11 @@
 import { default as $ } from './../../Tag';
 import ScalarType from './../ScalarType';
+import ValueCollection from './ValueCollection';
 
 export default class BoolScalarType extends ScalarType {
 
   _parse(values) {
-    return values ? values.map(v => v === true || v === 'true') : null;
+    return new ValueCollection(values.map(v => v === true || v === 'true'));
   }
 
   _build() {
@@ -25,5 +26,9 @@ export default class BoolScalarType extends ScalarType {
 
   clear() {
     this._node.checked = false;
+  }
+
+  static supports() {
+    return ['bool'];
   }
 }
