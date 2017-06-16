@@ -1,9 +1,7 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
-
 import Squalus from '../Squalus';
 import FormData from 'form-data';
 import rp from 'request-promise';
-import colors from 'colors';
+import 'colors';
 import TestError from './TestError';
 
 function padRight(str, width, char = ' ') {

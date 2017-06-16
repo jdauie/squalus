@@ -1,38 +1,67 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^style$" }] */
-
 import Squalus from './Squalus';
 import docReady from 'es6-docready';
 import yaml from 'js-yaml';
-import style from './static/squalus.css';
+import './static/squalus.css';
 
-export default class SqualusWeb extends Squalus {
+class SqualusWeb extends Squalus {
 
-  static build(baseUrl, endpoints, types) {
-    const resolvedTypes = (Array.isArray(types) || typeof types === 'string')
-      ? Promise.all((Array.isArray(types) ? types : [types]).map(url =>
-          fetch(url)
-            .then(response => response.text())
-            .then(text => yaml.safeLoad(text))
-        )).then(chunks => Object.assign.apply(null, chunks))
-      : Promise.resolve(types);
+  constructor() {
+    super();
+    this._url = null;
+    this._types = [];
+    this._endpoints = [];
+  }
 
-    const resolvedEndpoints = (typeof endpoints === 'string' ||
-      (Array.isArray(endpoints) && endpoints.length && typeof endpoints[0] === 'string'))
-      ? Promise.all((Array.isArray(endpoints) ? endpoints : [endpoints]).map(url =>
-        fetch(url)
-          .then(response => response.text())
-          .then(text => yaml.safeLoad(text))
-        )).then(chunks => Array.prototype.concat.apply([], chunks))
-      : Promise.resolve(endpoints);
+  url(url) {
+    this._url = url;
+    return this;
+  }
 
+  typesYaml(yamlStr) {
+    this._types.push(Promise.resolve(yaml.safeLoad(yamlStr)));
+    return this;
+  }
+
+  typesUrl(url) {
+    this._types.push(fetch(url)
+      .then(response => response.text())
+      .then(text => yaml.safeLoad(text)));
+    return this;
+  }
+
+  types(obj) {
+    this._types.push(Promise.resolve(obj));
+    return this;
+  }
+
+  endpointsYaml(yamlStr) {
+    this._endpoints.push(Promise.resolve(yaml.safeLoad(yamlStr)));
+    return this;
+  }
+
+  endpointsUrl(url) {
+    this._endpoints.push(fetch(url)
+      .then(response => response.text())
+      .then(text => yaml.safeLoad(text)));
+    return this;
+  }
+
+  endpoints(obj) {
+    this._endpoints.push(Promise.resolve(obj));
+    return this;
+  }
+
+  build() {
     Promise.all([
-      resolvedTypes,
-      resolvedEndpoints,
-    ]).then(values => ((t, e) => {
-      Squalus.buildTypes(t);
+      Promise.all(this._types),
+      Promise.all(this._endpoints),
+    ]).then(values => ((types, endpoints) => {
+      Squalus.buildTypes(Object.assign.apply(null, types));
       docReady(() => {
-        Squalus.buildTests(e, baseUrl);
+        Squalus.buildTests(Array.prototype.concat.apply([], endpoints), this._url);
       });
     }).apply(null, values));
   }
 }
+
+export default new SqualusWeb();

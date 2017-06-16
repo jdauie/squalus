@@ -1,7 +1,4 @@
-/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^colors$" }] */
-
-// colors is imported for the side effects
-import colors from 'colors';
+import 'colors';
 import topoSort from '../TopoSort';
 import TestError from './TestError';
 import ValidationContext from '../ValidationContext';
