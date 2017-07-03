@@ -166,7 +166,10 @@ export default class Endpoint {
       options.body = JSON.stringify(body);
     }
 
-    RequestInstance.execute(url, options).then(req => {
+    const outputContainer = closestAncestorByClassName(this._node, 'api-root')
+      .getElementsByClassName('output-container')[0];
+
+    RequestInstance.execute(url, options, outputContainer).then(req => {
       req.dump();
     });
   }

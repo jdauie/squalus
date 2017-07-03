@@ -17,7 +17,7 @@ ul {
   padding:0;
 }
 
-#api-root {
+.api-root {
   position:fixed;
   top:0;
   right:0;
@@ -25,12 +25,12 @@ ul {
   left:0;
   display:flex;
 }
-#api-container {
-  flex:1 1 0px;
+.api-container {
+  flex:1 1 0;
   overflow-y:scroll;
 }
-#output-container {
-  flex:1 1 0px;
+.output-container {
+  flex:1 1 0;
   overflow-y:scroll;
 }
 .output-section {

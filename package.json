@@ -1,6 +1,6 @@
 {
   "name": "squalus",
-  "version": "0.1.39",
+  "version": "0.1.48",
   "description": "REST API endpoint testing",
   "main": "lib/squalus-node",
   "browser": "lib/squalus",
@@ -33,7 +33,6 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "es6-docready": "^1.0.0",
     "form-data": "^1.0.0-rc4",
     "js-yaml": "^3.6.0",
     "request-promise": "^3.0.0"

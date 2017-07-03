@@ -1,14 +1,11 @@
 import { default as $ } from './Tag';
 
-function getOutputContainer() {
-  return document.getElementById('output-container');
-}
-
 export default class RequestInstance {
 
-  constructor(url, options) {
+  constructor(url, options, output) {
     this._url = url;
     this._options = options;
+    this._output = output;
     this._sendTime = (new Date()).getTime();
     this._responseTime = null;
     this._responseUrl = null;
@@ -17,11 +14,10 @@ export default class RequestInstance {
     this._responseBody = null;
   }
 
-  static execute(url, options) {
-    const result = new RequestInstance(url, options);
+  static execute(url, options, output) {
+    const result = new RequestInstance(url, options, output);
 
-    const output = getOutputContainer();
-    output.innerHTML = '';
+    result._output.innerHTML = '';
 
     const sections = {
       url: result._url,
@@ -29,7 +25,7 @@ export default class RequestInstance {
       status: 'fetching...',
     };
 
-    RequestInstance.dumpSections(sections);
+    result.dumpSections(sections);
 
     return fetch(url, options).then(res =>
       res.text().then(body => {
@@ -46,8 +42,7 @@ export default class RequestInstance {
   }
 
   dump() {
-    const output = getOutputContainer();
-    output.innerHTML = '';
+    this._output.innerHTML = '';
 
     let responseBody = this._responseBody;
     const contentType = this._responseHeaders.get('content-type');
@@ -74,13 +69,12 @@ export default class RequestInstance {
       sections.body = body;
     }
 
-    RequestInstance.dumpSections(sections);
+    this.dumpSections(sections);
   }
 
-  static dumpSections(sections) {
-    const output = getOutputContainer();
+  dumpSections(sections) {
     for (const key of Object.keys(sections)) {
-      output.appendChild($('div', { class: 'output-section' },
+      this._output.appendChild($('div', { class: 'output-section' },
         $('div', { class: 'output-section-label' }, key),
         $('div', { class: 'output-section-content' }, sections[key])
       ));

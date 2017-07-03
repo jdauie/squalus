@@ -364,10 +364,15 @@ export default class Squalus {
     });
   }
 
-  static buildTests(tests, baseUrl) {
-    const root = document.body.appendChild($('div', { id: 'api-root' }));
-    const api = root.appendChild($('div', { id: 'api-container' }));
-    root.appendChild($('div', { id: 'output-container' }));
+  static buildTests(tests, baseUrl, id) {
+    const root = document.body.appendChild($('div', { class: 'api-root' }));
+
+    if (id) {
+      root.setAttribute('id', id);
+    }
+
+    const api = root.appendChild($('div', { class: 'api-container' }));
+    root.appendChild($('div', { class: 'output-container' }));
     const ul = api.appendChild($('ul', { class: 'api-tests' }));
 
     tests.forEach(test => {
@@ -434,5 +439,7 @@ export default class Squalus {
 
     BranchType.initializeSelectionStates(root);
     AttributeType.initializeIncludedStates(root);
+
+    return root;
   }
 }

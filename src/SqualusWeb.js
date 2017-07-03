@@ -1,5 +1,5 @@
 import Squalus from './Squalus';
-import docReady from 'es6-docready';
+import DocReady from './DocReady';
 import yaml from 'js-yaml';
 import './static/squalus.css';
 
@@ -51,17 +51,22 @@ class SqualusWeb extends Squalus {
     return this;
   }
 
-  build() {
-    Promise.all([
+  build(id) {
+    return Promise.all([
       Promise.all(this._types),
       Promise.all(this._endpoints),
     ]).then(values => ((types, endpoints) => {
-      Squalus.buildTypes(Object.assign.apply(null, types));
-      docReady(() => {
-        Squalus.buildTests(Array.prototype.concat.apply([], endpoints), this._url);
+      if (types.length) {
+        Squalus.buildTypes(Object.assign.apply(null, types));
+      }
+      return endpoints;
+    }).apply(null, values))
+      .then(DocReady)
+      .then(endpoints => {
+        const url = this._url || window.location.origin;
+        return Squalus.buildTests(Array.prototype.concat.apply([], endpoints), url, id);
       });
-    }).apply(null, values));
   }
 }
 
-export default new SqualusWeb();
+export default SqualusWeb;
