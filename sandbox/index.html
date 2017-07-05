@@ -11,11 +11,10 @@
       },
     });
     require(['squalus'], function(squalus) {
-      squalus.default.build(
-        'http://localjournal.submishmash.com',
-        '/sandbox/endpoints2.yaml',
-        '/sandbox/tests/Test/Test2.yaml'
-      );
+      new squalus.default()
+        .typesUrl('/sandbox/tests/Test/Test2.yaml')
+        .endpointsUrl('/sandbox/endpoints2.yaml')
+        .build();
     });
   </script>
 </head>
