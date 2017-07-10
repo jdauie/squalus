@@ -14,7 +14,11 @@ export default class ScalarType {
 
   constructor(type, values) {
     this._type = type;
-    this._values = Array.isArray(values) ? this._parse(values) : null;
+    if (values instanceof ValueCollection) {
+      this._values = values;
+    } else {
+      this._values = Array.isArray(values) ? this._parse(values) : null;
+    }
     this._node = null;
   }
 
